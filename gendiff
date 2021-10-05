@@ -1,0 +1,15 @@
+#!/usr/bin/env php
+<?php
+$doc = <<<DOC
+Generate diff
+
+Usage:
+  gendiff (-h|--help)
+  gendiff (-v|--version)
+Options:
+  -h --help                     Show this screen
+  -v --version                  Show version
+DOC;
+
+require_once ('vendor/docopt/docopt/src/docopt.php');
+Docopt::handle($doc, array('version' => 'gendiff 1.0'));

@@ -1,0 +1,6 @@
+{
+    "name": "hexlet/code",
+    "require": {
+        "docopt/docopt": "^1.0"
+    }
+}
