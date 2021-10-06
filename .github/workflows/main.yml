@@ -1,0 +1,20 @@
+name: linttest
+
+on:
+  push
+
+jobs:
+  run-linttest:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+    - name: Install
+        run: make install
+    - name: run-linter
+        run: make lint
+    - name: run-tests
+        run: make test
