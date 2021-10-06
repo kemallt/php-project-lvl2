@@ -2,17 +2,19 @@
 
 namespace Differ\Differ;
 
+use function Differ\Parsers\getDataFromFile;
+
 function genDiff($pathToFile1, $pathToFile2)
 {
-    $data1 = json_decode(file_get_contents($pathToFile1), true);
-    $data2 = json_decode(file_get_contents($pathToFile2), true);
+    $data1 = getDataFromFile($pathToFile1);
+    $data2 = getDataFromFile($pathToFile2);
 
     $result = array();
     foreach ($data1 as $itemName => $itemValue) {
         $itemValue = stringifyBoolean($itemValue);
         if (array_key_exists($itemName, $data2)) {
             $result = addResArrVal($result, $itemName, $itemValue, $data2);
-            unset($data2[$itemName]);
+            unset($data2->$itemName);
         } else {
             $result[] = array('name' => $itemName, 'value' => (string)$itemValue, 'sign' => '-');
         }
@@ -60,10 +62,10 @@ function sortDiffArr($diffArr)
 
 function addResArrVal($resArr, $itemName, $itemValue, $data2)
 {
-    if ($itemValue === stringifyBoolean($data2[$itemName])) {
+    if ($itemValue === stringifyBoolean($data2->$itemName)) {
         $resArr[] = array('name' => $itemName, 'value' => (string)$itemValue, 'sign' => ' ');
     } else {
-        $item2Value = stringifyBoolean($data2[$itemName]);
+        $item2Value = stringifyBoolean($data2->$itemName);
         $resArr[] = array('name' => $itemName, 'value' => (string)$itemValue, 'sign' => '-');
         $resArr[] = array('name' => $itemName, 'value' => (string)$item2Value, 'sign' => '+');
     }

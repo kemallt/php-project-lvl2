@@ -1,11 +1,13 @@
 {
     "name": "hexlet/code",
     "require": {
-        "docopt/docopt": "^1.0"
+        "docopt/docopt": "^1.0",
+        "symfony/yaml": "^5.3"
     },
     "autoload": {
         "files": [
-            "src/differ.php"
+            "src/Differ.php",
+            "src/Parsers.php"
         ]
     },
     "require-dev": {
