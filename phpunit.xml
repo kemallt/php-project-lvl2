@@ -9,10 +9,9 @@
          convertWarningsToExceptions="true"
          processIsolation="false"
          stopOnFailure="true">
-    <testsuites>
-        <testsuite name="text">
-            <directory>tests</directory>
-            <exclude>tests/fixtures/</exclude>
-        </testsuite>
-    </testsuites>
+    <coverage includeUncoveredFiles="true">
+        <include>
+            <directory suffix=".php">./src</directory>
+        </include>
+    </coverage>
 </phpunit>
