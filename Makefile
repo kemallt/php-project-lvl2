@@ -3,4 +3,6 @@ install:
 lint:
 	composer exec --verbose phpcs -- --standard=PSR12 src
 test:
-	./vendor/bin/phpunit tests
+	composer exec phpunit tests
+test-coverage:
+	composer exec --verbose phpunit tests -- --coverage-clover build/logs/clover.xml
