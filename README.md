@@ -8,3 +8,5 @@
 
 demo
 [![asciicast](https://asciinema.org/a/wvjwUEOwALy7bMEPy7h1nX74y.svg)](https://asciinema.org/a/wvjwUEOwALy7bMEPy7h1nX74y)
+demo complex
+[![asciicast](https://asciinema.org/a/440712.svg)](https://asciinema.org/a/440712)
