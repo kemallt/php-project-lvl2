@@ -9,6 +9,11 @@
          convertWarningsToExceptions="true"
          processIsolation="false"
          stopOnFailure="true">
+    <testsuites>
+        <testsuite name="tests">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
     <coverage includeUncoveredFiles="true">
         <include>
             <directory suffix=".php">./src</directory>

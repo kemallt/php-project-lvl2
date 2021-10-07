@@ -3,71 +3,139 @@
 namespace Differ\Differ;
 
 use function Differ\Parsers\getDataFromFile;
+use function PHPUnit\Framework\isNull;
 
-function genDiff($pathToFile1, $pathToFile2)
+function genDiff($pathToFile1, $pathToFile2, $formatter = "stylish")
 {
     $data1 = getDataFromFile($pathToFile1);
     $data2 = getDataFromFile($pathToFile2);
 
-    $result = array();
-    foreach ($data1 as $itemName => $itemValue) {
-        $itemValue = stringifyBoolean($itemValue);
-        if (array_key_exists($itemName, $data2)) {
-            $result = addResArrVal($result, $itemName, $itemValue, $data2);
-            unset($data2->$itemName);
-        } else {
-            $result[] = array('name' => $itemName, 'value' => (string)$itemValue, 'sign' => '-');
-        }
+    $diffData = createDiffObjects($data1, $data2);
+    $diffData = sortDiffArr($diffData);
+    if ($formatter === 'stylish') {
+        $startOffset = -2;
+        $formattedRes =  generateStylishDiff($diffData, $startOffset);
+        return $formattedRes;
     }
-    foreach ($data2 as $item2Name => $item2Value) {
-        $item2Value = stringifyBoolean($item2Value);
-        $result[] = array('name' => $item2Name, 'value' => (string)$item2Value, 'sign' => '+');
-    }
-    $result = sortDiffArr($result);
-    return array_reduce($result, function ($resultString, $item) {
-        $resultString .= $item['sign'] . ' ' . $item['name'] . ': ' . $item['value'] . PHP_EOL;
-        return $resultString;
-    }, '');
 }
 
-function stringifyBoolean($string)
+function createDiffObjects($data1, $data2)
 {
-    if ($string === true) {
+    $dataArr = convertItem($data1, [], '-');
+    return convertItem($data2, $dataArr, '+');
+}
+
+function stringifyItem($item)
+{
+    if ($item === true) {
         $res = 'true';
-    } elseif ($string === false) {
+    } elseif ($item === false) {
         $res = 'false';
+    } elseif ($item === null) {
+        $res = 'null';
     } else {
-        $res = $string;
+        $res = $item;
     }
     return $res;
 }
 
-function sortDiffArr($diffArr)
+function convertItem($item, $itemArr, $sign)
 {
-    usort($diffArr, function ($item1, $item2) {
-        if ($item1['name'] > $item2['name']) {
-            return 1;
-        } elseif ($item1['name'] < $item2['name']) {
-            return -1;
-        } else {
-            if ($item1['sign'] === '-') {
-                return -1;
+    $iter = function ($curItem, $curItemArr) use (&$iter, $sign) {
+        if (!is_object($curItem)) {
+            $curItemVal = stringifyItem($curItem);
+            if ($sign === '+') {
+                if (array_key_exists('value', $curItemArr) && $curItemArr['value'] === $curItemVal) {
+                    $curItemArr['_sign'] = ' ';
+                } else {
+                    $curItemArr['_signAdd'] = '+';
+                    $curItemArr['valueAdd'] = $curItemVal;
+                }
             } else {
-                return 1;
+                $curItemArr['value'] = $curItemVal;
             }
+            return $curItemArr;
         }
-    });
-    return $diffArr;
+
+        foreach ($curItem as $itemName => $itemValue) {
+            if (array_key_exists($itemName, $curItemArr)) {
+                $nextItemArr = $curItemArr[$itemName];
+                if (!array_key_exists('value', $nextItemArr) && is_object($itemValue)) {
+                    $nextItemArr['_sign'] = ' ';
+                }
+            } else {
+                $nextItemArr = array('_sign' => $sign);
+            }
+            $curItemArr[$itemName] = $iter($itemValue, $nextItemArr);
+        }
+
+        return $curItemArr;
+    };
+    return $iter($item, $itemArr);
 }
 
-function addResArrVal($resArr, $itemName, $itemValue, $data2)
+function sortDiffArr($diffArr)
 {
-    if ($itemValue === stringifyBoolean($data2->$itemName)) {
-        $resArr[] = array('name' => $itemName, 'value' => (string)$itemValue, 'sign' => ' ');
-    } else {
-        $item2Value = stringifyBoolean($data2->$itemName);
-        $resArr[] = array('name' => $itemName, 'value' => (string)$itemValue, 'sign' => '-');
-        $resArr[] = array('name' => $itemName, 'value' => (string)$item2Value, 'sign' => '+');
-    }
-    return $resArr;
+    $iter = function ($curArr) use (&$iter) {
+        if (!is_array($curArr)) {
+            return $curArr;
+        }
+        foreach ($curArr as $itemName => $itemValue) {
+            $curArr[$itemName] = sortDiffArr($itemValue);
+        }
+        ksort($curArr);
+        return $curArr;
+    };
+    return $iter($diffArr);
+}
+
+function generateStylishDiff($diffData, $startOffset = -2)
+{
+    $iter = function ($lineName, $curArr, $depth, $parentSign) use (&$iter) {
+        if (!is_array($curArr)) {
+            return $curArr . PHP_EOL;
+        }
+
+        $object = false;
+        $valueLine = '';
+        $objectLine = '';
+        $valueAddLine = '';
+        if (array_key_exists('_sign', $curArr)) {
+            $sign = $curArr['_sign'];
+        } elseif (array_key_exists('_signAdd', $curArr)) {
+            $sign = $curArr['_signAdd'];
+        } else {
+            $sign = ' ';
+        }
+        $lineSign = $parentSign === $sign ? ' ' : $sign;
+        if (array_key_exists('value', $curArr)) {
+            $lineVal = $curArr['value'] === '' ? '' : ' ' . $curArr['value'];
+            $valueLine .= str_repeat(' ', $depth) . $lineSign .' ' . $lineName . ':' . $lineVal . PHP_EOL;
+        }
+        foreach ($curArr as $itemName => $itemValue) {
+            if ($itemName === '_sign' || $itemName === '_signAdd' || $itemName === 'value' || $itemName === 'valueAdd') {
+                continue;
+            }
+            $object = true;
+            $objectLine .= $iter($itemName, $itemValue, $depth + 4, $sign);
+        }
+        if (array_key_exists('valueAdd', $curArr)) {
+            $lineAddSign = $parentSign === $curArr['_signAdd'] ? ' ' : $curArr['_signAdd'];
+            $lineVal = $curArr['valueAdd'] === '' ? '' : ' ' . $curArr['valueAdd'];
+            $valueAddLine .= str_repeat(' ', $depth) . $lineAddSign .' ' . $lineName . ':' . $lineVal . PHP_EOL;
+        }
+        if ($object && $depth > -2) {
+            $line = str_repeat(' ', $depth). $lineSign .' ' . $lineName . ': {' . PHP_EOL;
+            $lineEnd = str_repeat(' ', $depth + 2) . '}'. PHP_EOL;
+        } elseif ($depth > -2) {
+            $line = '';
+            $lineEnd = '';
+        } else {
+            $line = '{' . PHP_EOL;
+            $lineEnd = '}';
+        }
+        return $line . $valueLine . $objectLine . $lineEnd . $valueAddLine;
+
+    };
+    return $iter('', $diffData, $startOffset, '');
 }

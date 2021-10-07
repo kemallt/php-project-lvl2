@@ -38,4 +38,10 @@ if (array_key_exists("<secondFile>", $args)) {
     throw new Exception('no second file name');
 }
 
-echo genDiff($firstFile, $secondFile);
+if (array_key_exists("<fmt>", $args)) {
+    $formatter = $args["<fmt>"];
+} else {
+    $formatter = "stylish";
+}
+
+echo genDiff($firstFile, $secondFile, $formatter);
