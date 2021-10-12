@@ -8,7 +8,7 @@ function getObjectEl(callable &$iter, array $curArr, array $parameters): array
     return array_reduce(
         array_keys($curArr),
         function ($accArr, $itemName) use (&$iter, $curArr, $status, $keyNames) {
-            if (in_array($itemName, $keyNames)) {
+            if (in_array($itemName, $keyNames, false)) {
                 return $accArr;
             }
             $accArr[$itemName] = $iter($curArr[$itemName], $status);
@@ -40,7 +40,7 @@ function generateDiff(mixed $diffData, array $keyNames): string
 function getCopyArr(array $curArr, array $keyNames, string $valueName): array
 {
     return array_reduce(array_keys($curArr), function ($accArr, $itemName) use (&$curArr, $keyNames, $valueName) {
-        if (in_array($itemName, $keyNames)) {
+        if (in_array($itemName, $keyNames, false)) {
             return $accArr;
         }
         if (array_key_exists($valueName, $curArr[$itemName])) {
@@ -71,7 +71,7 @@ function fillValueFields(array $valueArr, array $curArr, array $parameters): arr
     $valueExists = array_key_exists($valueName, $curArr);
     if ($valueExists) {
         $valueArr[$valueNewName] = $curArr[$valueName];
-    } elseif (in_array($status, $checkStatusArr)) {
+    } elseif (in_array($status, $checkStatusArr, false)) {
         $valueArr[$valueNewName] = getCopyArr($curArr, $keyNames, $valueName);
     }
     return $valueArr;

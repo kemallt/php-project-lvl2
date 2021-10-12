@@ -42,6 +42,8 @@ function getLineSignNameByStatus(string $status, string $lineName, bool $signAdd
                 $sign =  '-';
             }
             break;
+        default:
+            $sign = '';
     }
     return $sign . ' ' . $lineName;
 }
@@ -52,7 +54,7 @@ function getObjectLine(callable &$iter, array $curArr, array $parameters): strin
     return array_reduce(
         array_keys($curArr),
         function ($accLine, $itemName) use (&$iter, $curArr, $depth, $fixChildrenStatus, $keyNames) {
-            if (in_array($itemName, $keyNames)) {
+            if (in_array($itemName, $keyNames, false)) {
                 return $accLine;
             }
             $accLine .= $iter($itemName, $curArr[$itemName], $depth + 4, $fixChildrenStatus);
