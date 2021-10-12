@@ -6,36 +6,79 @@ use PHP_CodeSniffer\Reports\Diff;
 
 use function Differ\Additional\stringifyItem;
 
+function getStatus($curArr, $fixChildrenStatus = false)
+{
+    $sign = $curArr['_sign'];
+    $signAdd = $curArr['_signAdd'];
+    if ($fixChildrenStatus) {
+        return "unchanged";
+    }
+    if ($sign === '+') {
+        $status = "added";
+    } elseif ($sign === " ") {
+        $status = "unchanged";
+    } elseif ($signAdd === "+") {
+        $status = "modified";
+    } else {
+        $status = "deleted";
+    }
+    return $status;
+}
+
+function getSignByStatus($status, $signAdd = false)
+{
+    switch ($status) {
+        case "unchanged":
+            return ' ';
+        case "added":
+            return '+';
+        case "deleted":
+            return '-';
+        case "modified":
+            if ($signAdd) {
+                return '+';
+            } else {
+                return '-';
+            }
+    }
+}
+
 function generateDiff($diffData, $startOffset = -2)
 {
-    $iter = function ($lineName, $curArr, $depth, $parentSign) use (&$iter, $startOffset) {
+    $iter = function ($lineName, $curArr, $depth, $fixChildrenStatus) use (&$iter, $startOffset) {
         if (!is_array($curArr)) {
             return $curArr . PHP_EOL;
         }
 
         $keyNames = ['_sign', '_signAdd', 'value', 'valueAdd'];
-        $sign = getSign($curArr);
-        $lineSign = $parentSign === $sign ? ' ' : $sign;
-        $lineAddSign = $parentSign === $curArr['_signAdd'] ? ' ' : $curArr['_signAdd'];
+        $status = getStatus($curArr, $fixChildrenStatus);
+        if ($status !== "unchanged") {
+            $fixChildrenStatus = true;
+        }
+        $lineSign = getSignByStatus($status);
+        $lineAddSign = getSignByStatus($status, true);
         $valueLine = getValueLine($curArr, $lineSign, $lineName, $depth, 'value');
         $valueAddLine = getValueLine($curArr, $lineAddSign, $lineName, $depth, 'valueAdd');
+        if ($status === "modified" && $valueLine !== '') {
+            $lineSign = $lineAddSign;
+        }
 
         $objectLine = array_reduce(
             array_keys($curArr),
-            function ($accLine, $itemName) use (&$iter, &$curArr, $depth, $sign, $keyNames) {
+            function ($accLine, $itemName) use (&$iter, &$curArr, $depth, $fixChildrenStatus, $keyNames) {
                 if (in_array($itemName, $keyNames)) {
                     return $accLine;
                 }
-                $accLine .= $iter($itemName, $curArr[$itemName], $depth + 4, $sign);
+                $accLine .= $iter($itemName, $curArr[$itemName], $depth + 4, $fixChildrenStatus);
                 return $accLine;
             },
             ''
         );
         $object = $objectLine !== '';
         [$lineStart, $lineEnd] = generateLineStartEnd($object, $depth, $lineSign, $lineName, $startOffset);
-        return $lineStart . $valueLine . $objectLine . $lineEnd . $valueAddLine;
+        return $valueLine . $lineStart . $objectLine . $lineEnd . $valueAddLine;
     };
-    return $iter('', $diffData, $startOffset, '');
+    return $iter('', $diffData, $startOffset, false);
 }
 
 function getValueLine($curArr, $lineSign, $lineName, $depth, $valueName)
@@ -48,18 +91,6 @@ function getValueLine($curArr, $lineSign, $lineName, $depth, $valueName)
         $valueLine = '';
     }
     return $valueLine;
-}
-
-function getSign($curArr)
-{
-    if (array_key_exists('_sign', $curArr)) {
-        $sign = $curArr['_sign'];
-    } elseif (array_key_exists('_signAdd', $curArr)) {
-        $sign = $curArr['_signAdd'];
-    } else {
-        $sign = ' ';
-    }
-    return $sign;
 }
 
 function generateLineStartEnd($object, $depth, $lineSign, $lineName, $startOffset)

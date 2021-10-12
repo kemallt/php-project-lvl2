@@ -24,6 +24,15 @@ class DifferTest extends \PHPUnit\Framework\TestCase
         $this->expectedAnswer2 = file_get_contents(__DIR__ . '/fixtures/expectedComplex.txt');
         $this->expectedAnswer3 = file_get_contents(__DIR__ . '/fixtures/expectedComplexPlain.txt');
         $this->expectedAnswer4 = __DIR__ . '/fixtures/expectedComplexJson.txt';
+        $this->expectedAnswer5 = file_get_contents(__DIR__ . '/fixtures/expectedComplex1.txt');
+    }
+
+    public function testComplex1JsonStylish()
+    {
+        $file1 = __DIR__ . '/fixtures/complex1File1.json';
+        $file2 = __DIR__ . '/fixtures/complex1File2.json';
+        $actualAnswer = genDiff($file1, $file2);
+        $this->assertEquals($this->expectedAnswer5, $actualAnswer);
     }
 
     public function testGenDiffComplexJsonPlain()

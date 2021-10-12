@@ -46,6 +46,8 @@ function createNextItemArr($itemName, $itemValue, $curItemArr, $sign)
         $nextItemArr = $curItemArr[$itemName];
         if (!array_key_exists('value', $nextItemArr) && is_object($itemValue)) {
             $nextItemArr['_sign'] = ' ';
+        } elseif (is_object($itemValue)) {
+            $nextItemArr['_signAdd'] = $sign;
         }
     } else {
         $nextItemArr = array('_sign' => $sign, '_signAdd' => '');
