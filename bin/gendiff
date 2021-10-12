@@ -24,7 +24,6 @@ Options:
   --format <fmt>                Report format [default: stylish]
 DOC;
 
-require_once('vendor/docopt/docopt/src/docopt.php');
 $response = Docopt::handle($doc, array('version' => 'gendiff 1.0'));
 $args = $response->args;
 if (array_key_exists("<firstFile>", $args)) {
