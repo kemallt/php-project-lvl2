@@ -30,7 +30,7 @@ function convertItem(object $item, array $itemArr, string $sign): mixed
             return addItemToCurArr($curItemArr, $curItemVal, $sign);
         }
         $curItem = (array)$curItem;
-        $curItemArr = array_reduce(array_keys($curItem), function ($accArr, $itemName) use (&$iter, &$curItem, $sign) {
+        $curItemArr = array_reduce(array_keys($curItem), function ($accArr, $itemName) use ($iter, &$curItem, $sign) {
             $nextItemArr = getNextItemArr($itemName, $curItem[$itemName], $accArr, $sign);
             $accArr[$itemName] = $iter($curItem[$itemName], $nextItemArr);
             return $accArr;

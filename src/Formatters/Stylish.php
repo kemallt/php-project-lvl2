@@ -48,12 +48,12 @@ function getLineSignNameByStatus(string $status, string $lineName, bool $signAdd
     return $sign . ' ' . $lineName;
 }
 
-function getObjectLine(callable &$iter, array $curArr, array $parameters): string
+function getObjectLine(callable $iter, array $curArr, array $parameters): string
 {
     [$depth, $fixChildrenStatus, $keyNames] = $parameters;
     return array_reduce(
         array_keys($curArr),
-        function ($accLine, $itemName) use (&$iter, $curArr, $depth, $fixChildrenStatus, $keyNames) {
+        function ($accLine, $itemName) use ($iter, $curArr, $depth, $fixChildrenStatus, $keyNames) {
             if (in_array($itemName, $keyNames, false)) {
                 return $accLine;
             }

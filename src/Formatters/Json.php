@@ -2,12 +2,12 @@
 
 namespace Differ\Formatters\Json;
 
-function getObjectEl(callable &$iter, array $curArr, array $parameters): array
+function getObjectEl(callable $iter, array $curArr, array $parameters): array
 {
     [$status, $keyNames, $resArr] = $parameters;
     return array_reduce(
         array_keys($curArr),
-        function ($accArr, $itemName) use (&$iter, $curArr, $status, $keyNames) {
+        function ($accArr, $itemName) use ($iter, $curArr, $status, $keyNames) {
             if (in_array($itemName, $keyNames, false)) {
                 return $accArr;
             }
