@@ -54,7 +54,7 @@ function getObjectLine(callable $iter, array $curArr, array $parameters): string
     return array_reduce(
         array_keys($curArr),
         function ($accLine, $itemName) use ($iter, $curArr, $depth, $fixChildrenStatus, $keyNames) {
-            if (in_array($itemName, $keyNames, false)) {
+            if (in_array($itemName, $keyNames, true)) {
                 return $accLine;
             }
             $accLine .= $iter($itemName, $curArr[$itemName], $depth + 4, $fixChildrenStatus);
@@ -66,7 +66,7 @@ function getObjectLine(callable $iter, array $curArr, array $parameters): string
 
 function generateDiff(array $diffData, array $keyNames, int $startOffset = -2): string
 {
-    $iter = function ($lineName, $curArr, $depth, $fixChildrenStatus) use (&$iter, $keyNames, $startOffset) {
+    $iter = function ($lineName, $curArr, $depth, $fixChildrenStatus) use (&$iter, $keyNames, $startOffset): string {
         if (!is_array($curArr)) {
             return $curArr . PHP_EOL;
         }

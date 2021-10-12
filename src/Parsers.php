@@ -14,13 +14,15 @@ function getDataFromFile(string $pathToFile): object
     }
 
     $fileContent = file_get_contents($pathToFile);
-    if (!$fileContent) {
+    if ($fileContent === false) {
         return new \stdClass();
     }
     if ($extension === 'json') {
         $data = json_decode($fileContent);
     } elseif ($extension === 'yml' || $extension === 'yaml') {
         $data = Yaml::parse($fileContent, Yaml::PARSE_OBJECT_FOR_MAP);
+    } else {
+        $data = new \stdClass();
     }
     return $data;
 }
