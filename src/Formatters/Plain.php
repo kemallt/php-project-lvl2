@@ -37,7 +37,7 @@ function generateDiff($diffData)
         return $line;
     };
 
-    return $iter($diffData, '');
+    return rtrim($iter($diffData, ''));
 }
 
 function getValue($valueName, $curArr)
