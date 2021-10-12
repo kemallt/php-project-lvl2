@@ -42,8 +42,8 @@ function getValueLine($curArr, $lineSign, $lineName, $depth, $valueName)
 {
     if (array_key_exists($valueName, $curArr)) {
         $stringifiedValue = stringifyItem($curArr[$valueName]);
-        $lineVal = $stringifiedValue === '' ? '' : ' ' . $stringifiedValue;
-        $valueLine = str_repeat(' ', $depth) . $lineSign . ' ' . $lineName . ':' . $lineVal . PHP_EOL;
+        $lineVal = $stringifiedValue === '' ? '' : '' . $stringifiedValue;
+        $valueLine = str_repeat(' ', $depth) . $lineSign . ' ' . $lineName . ': ' . $lineVal . PHP_EOL;
     } else {
         $valueLine = '';
     }
