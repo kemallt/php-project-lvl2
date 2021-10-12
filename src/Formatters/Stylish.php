@@ -25,78 +25,85 @@ function getStatus($curArr, $fixChildrenStatus = false)
     return $status;
 }
 
-function getSignByStatus($status, $signAdd = false)
+function getLineSignNameByStatus($status, $lineName, $signAdd = false)
 {
     switch ($status) {
         case "unchanged":
-            return ' ';
+            $sign = ' ';
+            break;
         case "added":
-            return '+';
+            $sign = '+';
+            break;
         case "deleted":
-            return '-';
+            $sign = '-';
+            break;
         case "modified":
             if ($signAdd) {
-                return '+';
+                $sign = '+';
             } else {
-                return '-';
+                $sign =  '-';
             }
+            break;
     }
+    return $sign . ' ' . $lineName;
 }
 
-function generateDiff($diffData, $startOffset = -2)
+function getObjectLine(&$iter, $curArr, $parameters)
 {
-    $iter = function ($lineName, $curArr, $depth, $fixChildrenStatus) use (&$iter, $startOffset) {
+    [$depth, $fixChildrenStatus, $keyNames] = $parameters;
+    return array_reduce(
+        array_keys($curArr),
+        function ($accLine, $itemName) use (&$iter, $curArr, $depth, $fixChildrenStatus, $keyNames) {
+            if (in_array($itemName, $keyNames)) {
+                return $accLine;
+            }
+            $accLine .= $iter($itemName, $curArr[$itemName], $depth + 4, $fixChildrenStatus);
+            return $accLine;
+        },
+        ''
+    );
+}
+
+function generateDiff($diffData, $keyNames, $startOffset = -2)
+{
+    $iter = function ($lineName, $curArr, $depth, $fixChildrenStatus) use (&$iter, $keyNames, $startOffset) {
         if (!is_array($curArr)) {
             return $curArr . PHP_EOL;
         }
-
-        $keyNames = ['_sign', '_signAdd', 'value', 'valueAdd'];
         $status = getStatus($curArr, $fixChildrenStatus);
         if ($status !== "unchanged") {
             $fixChildrenStatus = true;
         }
-        $lineSign = getSignByStatus($status);
-        $lineAddSign = getSignByStatus($status, true);
-        $valueLine = getValueLine($curArr, $lineSign, $lineName, $depth, 'value');
-        $valueAddLine = getValueLine($curArr, $lineAddSign, $lineName, $depth, 'valueAdd');
-        if ($status === "modified" && $valueLine !== '') {
-            $lineSign = $lineAddSign;
-        }
+        $lineSignName = getLineSignNameByStatus($status, $lineName);
+        $lineAddSignName = getLineSignNameByStatus($status, $lineName, true);
+        $valueLine = getValueLine($curArr, $lineSignName, $depth, 'value');
+        $valueAddLine = getValueLine($curArr, $lineAddSignName, $depth, 'valueAdd');
+        $lineSignName = ($status === "modified" && $valueLine !== '') ? $lineAddSignName : $lineSignName;
 
-        $objectLine = array_reduce(
-            array_keys($curArr),
-            function ($accLine, $itemName) use (&$iter, &$curArr, $depth, $fixChildrenStatus, $keyNames) {
-                if (in_array($itemName, $keyNames)) {
-                    return $accLine;
-                }
-                $accLine .= $iter($itemName, $curArr[$itemName], $depth + 4, $fixChildrenStatus);
-                return $accLine;
-            },
-            ''
-        );
+        $objectLine = getObjectLine($iter, $curArr, [$depth, $fixChildrenStatus, $keyNames]);
         $object = $objectLine !== '';
-        [$lineStart, $lineEnd] = generateLineStartEnd($object, $depth, $lineSign, $lineName, $startOffset);
+        [$lineStart, $lineEnd] = generateLineStartEnd($object, $depth, $lineSignName, $startOffset);
         return $valueLine . $lineStart . $objectLine . $lineEnd . $valueAddLine;
     };
     return $iter('', $diffData, $startOffset, false);
 }
 
-function getValueLine($curArr, $lineSign, $lineName, $depth, $valueName)
+function getValueLine($curArr, $lineSignName, $depth, $valueName)
 {
     if (array_key_exists($valueName, $curArr)) {
         $stringifiedValue = stringifyItem($curArr[$valueName]);
         $lineVal = $stringifiedValue === '' ? '' : '' . $stringifiedValue;
-        $valueLine = str_repeat(' ', $depth) . $lineSign . ' ' . $lineName . ': ' . $lineVal . PHP_EOL;
+        $valueLine = str_repeat(' ', $depth) . $lineSignName . ': ' . $lineVal . PHP_EOL;
     } else {
         $valueLine = '';
     }
     return $valueLine;
 }
 
-function generateLineStartEnd($object, $depth, $lineSign, $lineName, $startOffset)
+function generateLineStartEnd($object, $depth, $lineSignName, $startOffset)
 {
     if ($object && $depth > $startOffset) {
-        $lineStart = str_repeat(' ', $depth) . $lineSign . ' ' . $lineName . ': {' . PHP_EOL;
+        $lineStart = str_repeat(' ', $depth) . $lineSignName . ': {' . PHP_EOL;
         $lineEnd = str_repeat(' ', $depth + 2) . '}' . PHP_EOL;
     } elseif ($depth > $startOffset) {
         $lineStart = '';

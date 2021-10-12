@@ -7,13 +7,13 @@ use function Differ\Formatters\getFormattedDiff;
 
 function genDiff($pathToFile1, $pathToFile2, $formatter = "stylish")
 {
+    $keyNames = ['_sign', '_signAdd', 'value', 'valueAdd'];
     $data1 = getDataFromFile($pathToFile1);
     $data2 = getDataFromFile($pathToFile2);
 
     $diffData = createDiffObjects($data1, $data2);
     $diffData = sortDiffArr($diffData);
-    $answer = getFormattedDiff($diffData, $formatter);
-    return $answer;
+    return getFormattedDiff($diffData, $keyNames, $formatter);
 }
 
 function createDiffObjects($data1, $data2)
@@ -31,7 +31,7 @@ function convertItem($item, $itemArr, $sign)
         }
         $curItem = (array)$curItem;
         $curItemArr = array_reduce(array_keys($curItem), function ($accArr, $itemName) use (&$iter, &$curItem, $sign) {
-            $nextItemArr = createNextItemArr($itemName, $curItem[$itemName], $accArr, $sign);
+            $nextItemArr = getNextItemArr($itemName, $curItem[$itemName], $accArr, $sign);
             $accArr[$itemName] = $iter($curItem[$itemName], $nextItemArr);
             return $accArr;
         }, $curItemArr);
@@ -40,15 +40,14 @@ function convertItem($item, $itemArr, $sign)
     return $iter($item, $itemArr);
 }
 
-function createNextItemArr($itemName, $itemValue, $curItemArr, $sign)
+function getNextItemArr($itemName, $itemValue, $curItemArr, $sign)
 {
     if (array_key_exists($itemName, $curItemArr)) {
         $nextItemArr = $curItemArr[$itemName];
-        if (!array_key_exists('value', $nextItemArr) && is_object($itemValue)) {
-            $nextItemArr['_sign'] = ' ';
-        } elseif (is_object($itemValue)) {
-            $nextItemArr['_signAdd'] = $sign;
-        }
+        $itemIsObject = is_object($itemValue);
+        $valueExists = array_key_exists('value', $nextItemArr);
+        $nextItemArr['_signAdd'] = ($itemIsObject && $valueExists) ? $sign : $nextItemArr['_signAdd'];
+        $nextItemArr['_sign'] = ($itemIsObject && !$valueExists) ? ' ' : $nextItemArr['_sign'];
     } else {
         $nextItemArr = array('_sign' => $sign, '_signAdd' => '');
     }
