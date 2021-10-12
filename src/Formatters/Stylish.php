@@ -15,10 +15,8 @@ function generateDiff($diffData, $startOffset = -2)
 
         $keyNames = ['_sign', '_signAdd', 'value', 'valueAdd'];
         $sign = getSign($curArr);
-//        $lineSign = $parentSign === $sign ? ' ' : $sign;
-//        $lineAddSign = $parentSign === $curArr['_signAdd'] ? ' ' : $curArr['_signAdd'];
-        $lineSign = $sign;
-        $lineAddSign = $curArr['_signAdd'];
+        $lineSign = $parentSign === $sign ? ' ' : $sign;
+        $lineAddSign = $parentSign === $curArr['_signAdd'] ? ' ' : $curArr['_signAdd'];
         $valueLine = getValueLine($curArr, $lineSign, $lineName, $depth, 'value');
         $valueAddLine = getValueLine($curArr, $lineAddSign, $lineName, $depth, 'valueAdd');
 
