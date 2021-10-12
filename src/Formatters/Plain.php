@@ -10,7 +10,7 @@ function getObjectLine(callable $iter, array $curArr, array $parameters): string
     return array_reduce(
         array_keys($curArr),
         function ($accLine, $itemName) use ($iter, $curArr, $path, $keyNames) {
-            if (in_array($itemName, $keyNames, false)) {
+            if (in_array($itemName, $keyNames, true)) {
                 return $accLine;
             }
             $newPath = $path === '' ? $itemName : "{$path}.{$itemName}";

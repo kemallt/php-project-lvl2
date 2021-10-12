@@ -10,10 +10,17 @@ function getFormattedDiff(array $diffData, array $keyNames, string $formatter): 
 {
     switch ($formatter) {
         case "stylish":
-            return getStylishDiff($diffData, $keyNames);
+            $diff = getStylishDiff($diffData, $keyNames);
+            break;
         case "plain":
-            return getPlainDiff($diffData, $keyNames);
+            $diff = getPlainDiff($diffData, $keyNames);
+            break;
         case "json":
-            return getJsonDiff($diffData, $keyNames);
+            $diff = getJsonDiff($diffData, $keyNames);
+            break;
+        default:
+            $diff = '';
+            break;
     }
+    return $diff;
 }

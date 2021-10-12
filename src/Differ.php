@@ -29,12 +29,16 @@ function convertItem(object $item, array $itemArr, string $sign): mixed
             $curItemVal = $curItem;
             return addItemToCurArr($curItemArr, $curItemVal, $sign);
         }
-        $curItem = (array)$curItem;
-        $curItemArr = array_reduce(array_keys($curItem), function ($accArr, $itemName) use ($iter, &$curItem, $sign) {
-            $nextItemArr = getNextItemArr($itemName, $curItem[$itemName], $accArr, $sign);
-            $accArr[$itemName] = $iter($curItem[$itemName], $nextItemArr);
-            return $accArr;
-        }, $curItemArr);
+        $curItemArrayed = (array)$curItem;
+        $curItemArr = array_reduce(
+            array_keys($curItemArrayed),
+            function ($accArr, $itemName) use ($iter, &$curItemArrayed, $sign) {
+                $nextItemArr = getNextItemArr($itemName, $curItemArrayed[$itemName], $accArr, $sign);
+                $accArr[$itemName] = $iter($curItemArrayed[$itemName], $nextItemArr);
+                return $accArr;
+            },
+            $curItemArr
+        );
         return $curItemArr;
     };
     return $iter($item, $itemArr);
@@ -75,7 +79,7 @@ function sortDiffArr(array $diffArr): array
         if (!is_array($curArr)) {
             return $curArr;
         }
-        array_map(function ($itemName, $itemValue) use (&$curArr, &$iter) {
+        array_map(function ($itemName, $itemValue) use (&$curArr, &$iter): void {
             $curArr[$itemName] = $iter($itemValue);
         }, array_keys($curArr), $curArr);
         ksort($curArr);

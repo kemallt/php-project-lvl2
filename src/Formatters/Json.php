@@ -8,7 +8,7 @@ function getObjectEl(callable $iter, array $curArr, array $parameters): array
     return array_reduce(
         array_keys($curArr),
         function ($accArr, $itemName) use ($iter, $curArr, $status, $keyNames) {
-            if (in_array($itemName, $keyNames, false)) {
+            if (in_array($itemName, $keyNames, true)) {
                 return $accArr;
             }
             $accArr[$itemName] = $iter($curArr[$itemName], $status);
@@ -34,13 +34,18 @@ function generateDiff(mixed $diffData, array $keyNames): string
     };
 
     $jsonData = $iter($diffData, null);
-    return json_encode($jsonData, 0);
+    $jsonDiff = json_encode($jsonData, 0);
+    if ($jsonDiff === false) {
+        return '';
+    } else {
+        return $jsonDiff;
+    }
 }
 
 function getCopyArr(array $curArr, array $keyNames, string $valueName): array
 {
     return array_reduce(array_keys($curArr), function ($accArr, $itemName) use (&$curArr, $keyNames, $valueName) {
-        if (in_array($itemName, $keyNames, false)) {
+        if (in_array($itemName, $keyNames, true)) {
             return $accArr;
         }
         if (array_key_exists($valueName, $curArr[$itemName])) {
@@ -52,7 +57,7 @@ function getCopyArr(array $curArr, array $keyNames, string $valueName): array
     }, []);
 }
 
-function getValueArr(array $curArr, string $status, bool $addStatus, array $keyNames)
+function getValueArr(array $curArr, string $status, bool $addStatus, array $keyNames): array
 {
     $valueArr = [];
     if ($addStatus) {
@@ -71,7 +76,7 @@ function fillValueFields(array $valueArr, array $curArr, array $parameters): arr
     $valueExists = array_key_exists($valueName, $curArr);
     if ($valueExists) {
         $valueArr[$valueNewName] = $curArr[$valueName];
-    } elseif (in_array($status, $checkStatusArr, false)) {
+    } elseif (in_array($status, $checkStatusArr, true)) {
         $valueArr[$valueNewName] = getCopyArr($curArr, $keyNames, $valueName);
     }
     return $valueArr;
