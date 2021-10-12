@@ -26,14 +26,6 @@ class DifferTest extends \PHPUnit\Framework\TestCase
         $this->expectedAnswer4 = __DIR__ . '/fixtures/expectedComplexJson.txt';
     }
 
-    public function testGenDiffComplexJsonJson()
-    {
-        $file1 = __DIR__ . '/fixtures/complexFile1.json';
-        $file2 = __DIR__ . '/fixtures/complexFile2.json';
-        $actualAnswer = genDiff($file1, $file2, 'json');
-        $this->assertJsonStringEqualsJsonFile($this->expectedAnswer4, $actualAnswer);
-    }
-
     public function testGenDiffComplexJsonPlain()
     {
         $file1 = __DIR__ . '/fixtures/complexFile1.json';
@@ -72,6 +64,14 @@ class DifferTest extends \PHPUnit\Framework\TestCase
         $file2 = __DIR__ . '/fixtures/file2.json';
         $actualAnswer = genDiff($file1, $file2, 'stylish');
         $this->assertEquals($this->expectedAnswer1, $actualAnswer);
+    }
+
+    public function testGenDiffComplexJsonJson()
+    {
+        $file1 = __DIR__ . '/fixtures/complexFile1.json';
+        $file2 = __DIR__ . '/fixtures/complexFile2.json';
+        $actualAnswer = genDiff($file1, $file2, 'json');
+        $this->assertJsonStringEqualsJsonFile($this->expectedAnswer4, $actualAnswer);
     }
 
 }
