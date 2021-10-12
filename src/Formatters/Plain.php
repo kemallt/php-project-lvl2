@@ -6,7 +6,7 @@ use function Differ\Additional\stringifyItem;
 
 function generateDiff($diffData)
 {
-    $iter = function ($curArr, $depth, $parentSign, $path) use (&$iter) {
+    $iter = function ($curArr, $path) use (&$iter) {
         if (!is_array($curArr)) {
             return $curArr;
         }
@@ -21,18 +21,23 @@ function generateDiff($diffData)
         } elseif ($curArr['_signAdd'] === '+' || $curArr['_sign'] === '+') {
             $line .= "Property '{$path}' was added with value: {$valueAdd}" . PHP_EOL;
         } else {
-            foreach ($curArr as $itemName => $itemValue) {
-                if (in_array($itemName, $keyNames)) {
-                    continue;
-                }
-                $newPath = $path === '' ? $itemName : "{$path}.{$itemName}";
-                $line .= $iter($itemValue, $depth + 1, $parentSign, $newPath);
-            }
+            $line .= array_reduce(
+                array_keys($curArr),
+                function ($accLine, $itemName) use (&$iter, &$curArr, $path, $keyNames) {
+                    if (in_array($itemName, $keyNames)) {
+                        return $accLine;
+                    }
+                    $newPath = $path === '' ? $itemName : "{$path}.{$itemName}";
+                    $accLine .= $iter($curArr[$itemName], $newPath);
+                    return $accLine;
+                },
+                $line
+            );
         }
         return $line;
     };
 
-    return $iter($diffData, 0, ' ', '');
+    return $iter($diffData, '');
 }
 
 function getValue($valueName, $curArr)

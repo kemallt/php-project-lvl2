@@ -2,6 +2,8 @@
 
 namespace Differ\Formatters\Stylish;
 
+use PHP_CodeSniffer\Reports\Diff;
+
 use function Differ\Additional\stringifyItem;
 
 function generateDiff($diffData, $startOffset = -2)
@@ -18,15 +20,18 @@ function generateDiff($diffData, $startOffset = -2)
         $valueLine = getValueLine($curArr, $lineSign, $lineName, $depth, 'value');
         $valueAddLine = getValueLine($curArr, $lineAddSign, $lineName, $depth, 'valueAdd');
 
-        $objectLine = '';
-        $object = false;
-        foreach ($curArr as $itemName => $itemValue) {
-            if (in_array($itemName, $keyNames)) {
-                continue;
-            }
-            $object = true;
-            $objectLine .= $iter($itemName, $itemValue, $depth + 4, $sign);
-        }
+        $objectLine = array_reduce(
+            array_keys($curArr),
+            function ($accLine, $itemName) use (&$iter, &$curArr, $depth, $sign, $keyNames) {
+                if (in_array($itemName, $keyNames)) {
+                    return $accLine;
+                }
+                $accLine .= $iter($itemName, $curArr[$itemName], $depth + 4, $sign);
+                return $accLine;
+            },
+            ''
+        );
+        $object = $objectLine !== '';
         [$lineStart, $lineEnd] = generateLineStartEnd($object, $depth, $lineSign, $lineName, $startOffset);
         return $lineStart . $valueLine . $objectLine . $lineEnd . $valueAddLine;
     };

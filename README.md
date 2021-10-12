@@ -12,3 +12,5 @@ demo complex
 [![asciicast](https://asciinema.org/a/440712.svg)](https://asciinema.org/a/440712)
 demo plain formatter
 [![asciicast](https://asciinema.org/a/wunSn7astPds7O8mm0XoF3oB5.svg)](https://asciinema.org/a/wunSn7astPds7O8mm0XoF3oB5)
+demo json formatter
+[![asciicast](https://asciinema.org/a/n9BJof0Ifps3m6lmtbD3UBYHS.svg)](https://asciinema.org/a/n9BJof0Ifps3m6lmtbD3UBYHS)

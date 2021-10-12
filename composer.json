@@ -11,6 +11,7 @@
             "src/Formatters.php",
             "src/Formatters/Stylish.php",
             "src/Formatters/Plain.php",
+            "src/Formatters/Json.php",
             "src/Additional.php"
         ]
     },

@@ -9,6 +9,7 @@ class DifferTest extends \PHPUnit\Framework\TestCase
     private $expectedAnswer1;
     private $expectedAnswer2;
     private $expectedAnswer3;
+    private $expectedAnswer4;
 
     public function setUp(): void
     {
@@ -22,6 +23,15 @@ class DifferTest extends \PHPUnit\Framework\TestCase
 }';
         $this->expectedAnswer2 = file_get_contents(__DIR__ . '/fixtures/expectedComplex.txt');
         $this->expectedAnswer3 = file_get_contents(__DIR__ . '/fixtures/expectedComplexPlain.txt');
+        $this->expectedAnswer4 = __DIR__ . '/fixtures/expectedComplexJson.txt';
+    }
+
+    public function testGenDiffComplexJsonJson()
+    {
+        $file1 = __DIR__ . '/fixtures/complexFile1.json';
+        $file2 = __DIR__ . '/fixtures/complexFile2.json';
+        $actualAnswer = genDiff($file1, $file2, 'json');
+        $this->assertJsonStringEqualsJsonFile($this->expectedAnswer4, $actualAnswer);
     }
 
     public function testGenDiffComplexJsonPlain()

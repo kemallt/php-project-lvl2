@@ -29,11 +29,12 @@ function convertItem($item, $itemArr, $sign)
             $curItemVal = $curItem;
             return addItemToCurArr($curItemArr, $curItemVal, $sign);
         }
-
-        foreach ($curItem as $itemName => $itemValue) {
-            $nextItemArr = createNextItemArr($itemName, $itemValue, $curItemArr, $sign);
-            $curItemArr[$itemName] = $iter($itemValue, $nextItemArr);
-        }
+        $curItem = (array)$curItem;
+        $curItemArr = array_reduce(array_keys($curItem), function ($accArr, $itemName) use (&$iter, &$curItem, $sign) {
+            $nextItemArr = createNextItemArr($itemName, $curItem[$itemName], $accArr, $sign);
+            $accArr[$itemName] = $iter($curItem[$itemName], $nextItemArr);
+            return $accArr;
+        }, $curItemArr);
         return $curItemArr;
     };
     return $iter($item, $itemArr);
@@ -73,9 +74,9 @@ function sortDiffArr($diffArr)
         if (!is_array($curArr)) {
             return $curArr;
         }
-        foreach ($curArr as $itemName => $itemValue) {
-            $curArr[$itemName] = sortDiffArr($itemValue);
-        }
+        array_map(function ($itemName, $itemValue) use (&$curArr, &$iter) {
+            $curArr[$itemName] = $iter($itemValue);
+        }, array_keys($curArr), $curArr);
         ksort($curArr);
         return $curArr;
     };
