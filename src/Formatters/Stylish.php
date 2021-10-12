@@ -2,11 +2,9 @@
 
 namespace Differ\Formatters\Stylish;
 
-use PHP_CodeSniffer\Reports\Diff;
-
 use function Differ\Additional\stringifyItem;
 
-function getStatus($curArr, $fixChildrenStatus = false)
+function getStatus(array $curArr, bool $fixChildrenStatus = false): string
 {
     $sign = $curArr['_sign'];
     $signAdd = $curArr['_signAdd'];
@@ -25,7 +23,7 @@ function getStatus($curArr, $fixChildrenStatus = false)
     return $status;
 }
 
-function getLineSignNameByStatus($status, $lineName, $signAdd = false)
+function getLineSignNameByStatus(string $status, string $lineName, bool $signAdd = false): string
 {
     switch ($status) {
         case "unchanged":
@@ -48,7 +46,7 @@ function getLineSignNameByStatus($status, $lineName, $signAdd = false)
     return $sign . ' ' . $lineName;
 }
 
-function getObjectLine(&$iter, $curArr, $parameters)
+function getObjectLine(callable &$iter, array $curArr, array $parameters): string
 {
     [$depth, $fixChildrenStatus, $keyNames] = $parameters;
     return array_reduce(
@@ -64,7 +62,7 @@ function getObjectLine(&$iter, $curArr, $parameters)
     );
 }
 
-function generateDiff($diffData, $keyNames, $startOffset = -2)
+function generateDiff(array $diffData, array $keyNames, int $startOffset = -2): string
 {
     $iter = function ($lineName, $curArr, $depth, $fixChildrenStatus) use (&$iter, $keyNames, $startOffset) {
         if (!is_array($curArr)) {
@@ -88,7 +86,7 @@ function generateDiff($diffData, $keyNames, $startOffset = -2)
     return $iter('', $diffData, $startOffset, false);
 }
 
-function getValueLine($curArr, $lineSignName, $depth, $valueName)
+function getValueLine(array $curArr, string $lineSignName, int $depth, string $valueName): string
 {
     if (array_key_exists($valueName, $curArr)) {
         $stringifiedValue = stringifyItem($curArr[$valueName]);
@@ -100,7 +98,7 @@ function getValueLine($curArr, $lineSignName, $depth, $valueName)
     return $valueLine;
 }
 
-function generateLineStartEnd($object, $depth, $lineSignName, $startOffset)
+function generateLineStartEnd(bool $object, int $depth, string $lineSignName, int $startOffset): array
 {
     if ($object && $depth > $startOffset) {
         $lineStart = str_repeat(' ', $depth) . $lineSignName . ': {' . PHP_EOL;

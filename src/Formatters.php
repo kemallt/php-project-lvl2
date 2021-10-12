@@ -6,7 +6,7 @@ use function Differ\Formatters\Stylish\generateDiff as getStylishDiff;
 use function Differ\Formatters\Plain\generateDiff as getPlainDiff;
 use function Differ\Formatters\Json\generateDiff as getJsonDiff;
 
-function getFormattedDiff($diffData, $keyNames, $formatter)
+function getFormattedDiff(array $diffData, array $keyNames, string $formatter): string
 {
     switch ($formatter) {
         case "stylish":

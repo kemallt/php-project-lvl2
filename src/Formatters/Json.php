@@ -2,7 +2,7 @@
 
 namespace Differ\Formatters\Json;
 
-function getObjectEl(&$iter, $curArr, $parameters)
+function getObjectEl(callable &$iter, array $curArr, array $parameters): array
 {
     [$status, $keyNames, $resArr] = $parameters;
     return array_reduce(
@@ -18,7 +18,7 @@ function getObjectEl(&$iter, $curArr, $parameters)
     );
 }
 
-function generateDiff($diffData, $keyNames)
+function generateDiff(mixed $diffData, array $keyNames): string
 {
     $iter = function ($curArr, $parentStatus) use (&$iter, $keyNames) {
         if (!is_array($curArr)) {
@@ -37,7 +37,7 @@ function generateDiff($diffData, $keyNames)
     return json_encode($jsonData, 0);
 }
 
-function getCopyArr($curArr, $keyNames, $valueName)
+function getCopyArr(array $curArr, array $keyNames, string $valueName): array
 {
     return array_reduce(array_keys($curArr), function ($accArr, $itemName) use (&$curArr, $keyNames, $valueName) {
         if (in_array($itemName, $keyNames)) {
@@ -52,7 +52,7 @@ function getCopyArr($curArr, $keyNames, $valueName)
     }, []);
 }
 
-function getValueArr($curArr, $status, $addStatus, $keyNames)
+function getValueArr(array $curArr, string $status, bool $addStatus, array $keyNames)
 {
     $valueArr = [];
     if ($addStatus) {
@@ -65,7 +65,7 @@ function getValueArr($curArr, $status, $addStatus, $keyNames)
     return $valueArr;
 }
 
-function fillValueFields($valueArr, $curArr, $parameters)
+function fillValueFields(array $valueArr, array $curArr, array $parameters): array
 {
     [$valueName, $valueNewName, $status, $checkStatusArr, $keyNames] = $parameters;
     $valueExists = array_key_exists($valueName, $curArr);
@@ -77,7 +77,7 @@ function fillValueFields($valueArr, $curArr, $parameters)
     return $valueArr;
 }
 
-function getStatus($curArr)
+function getStatus(array $curArr): string
 {
     $sign = $curArr['_sign'];
     $signAdd = $curArr['_signAdd'];

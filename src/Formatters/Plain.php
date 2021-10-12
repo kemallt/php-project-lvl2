@@ -4,7 +4,7 @@ namespace Differ\Formatters\Plain;
 
 use function Differ\Additional\stringifyItem;
 
-function getObjectLine(&$iter, $curArr, $parameters)
+function getObjectLine(callable &$iter, array $curArr, array $parameters): string
 {
     [$path, $keyNames, $line] = $parameters;
     return array_reduce(
@@ -21,7 +21,7 @@ function getObjectLine(&$iter, $curArr, $parameters)
     );
 }
 
-function generateDiff($diffData, $keyNames)
+function generateDiff(array $diffData, array $keyNames): string
 {
     $iter = function ($curArr, $path) use (&$iter, $keyNames) {
         if (!is_array($curArr)) {
@@ -45,7 +45,7 @@ function generateDiff($diffData, $keyNames)
     return rtrim($iter($diffData, ''));
 }
 
-function getValue($valueName, $curArr)
+function getValue(string $valueName, array $curArr): string
 {
     $value = array_key_exists($valueName, $curArr) ? $curArr[$valueName] : '[complex value]';
     $stringifiedValue = stringifyItem($value);

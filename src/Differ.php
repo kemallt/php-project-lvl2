@@ -5,24 +5,24 @@ namespace Differ\Differ;
 use function Differ\Parsers\getDataFromFile;
 use function Differ\Formatters\getFormattedDiff;
 
-function genDiff($pathToFile1, $pathToFile2, $formatter = "stylish")
+function genDiff(string $pathToFile1, string $pathToFile2, string $formatter = "stylish"): string
 {
     $keyNames = ['_sign', '_signAdd', 'value', 'valueAdd'];
     $data1 = getDataFromFile($pathToFile1);
     $data2 = getDataFromFile($pathToFile2);
 
     $diffData = createDiffObjects($data1, $data2);
-    $diffData = sortDiffArr($diffData);
-    return getFormattedDiff($diffData, $keyNames, $formatter);
+    $sortedDiffData = sortDiffArr($diffData);
+    return getFormattedDiff($sortedDiffData, $keyNames, $formatter);
 }
 
-function createDiffObjects($data1, $data2)
+function createDiffObjects(object $data1, object $data2): array
 {
     $dataArr = convertItem($data1, ['_sign' => ' ', '_signAdd' => ' '], '-');
     return convertItem($data2, $dataArr, '+');
 }
 
-function convertItem($item, $itemArr, $sign)
+function convertItem(object $item, array $itemArr, string $sign): mixed
 {
     $iter = function ($curItem, $curItemArr) use (&$iter, $sign) {
         if (!is_object($curItem)) {
@@ -40,7 +40,7 @@ function convertItem($item, $itemArr, $sign)
     return $iter($item, $itemArr);
 }
 
-function getNextItemArr($itemName, $itemValue, $curItemArr, $sign)
+function getNextItemArr(string $itemName, mixed $itemValue, array $curItemArr, string $sign): array
 {
     if (array_key_exists($itemName, $curItemArr)) {
         $nextItemArr = $curItemArr[$itemName];
@@ -54,7 +54,7 @@ function getNextItemArr($itemName, $itemValue, $curItemArr, $sign)
     return $nextItemArr;
 }
 
-function addItemToCurArr($curItemArr, $curItemVal, $sign)
+function addItemToCurArr(array $curItemArr, mixed $curItemVal, string $sign): array
 {
     if ($sign === '+') {
         if (array_key_exists('value', $curItemArr) && $curItemArr['value'] === $curItemVal) {
@@ -69,7 +69,7 @@ function addItemToCurArr($curItemArr, $curItemVal, $sign)
     return $curItemArr;
 }
 
-function sortDiffArr($diffArr)
+function sortDiffArr(array $diffArr): array
 {
     $iter = function ($curArr) use (&$iter) {
         if (!is_array($curArr)) {

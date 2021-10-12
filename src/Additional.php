@@ -2,7 +2,7 @@
 
 namespace Differ\Additional;
 
-function stringifyItem($item)
+function stringifyItem(mixed $item): mixed
 {
     if ($item === true) {
         $res = 'true';
