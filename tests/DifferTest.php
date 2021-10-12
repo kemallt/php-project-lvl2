@@ -82,5 +82,4 @@ class DifferTest extends \PHPUnit\Framework\TestCase
         $actualAnswer = genDiff($file1, $file2, 'json');
         $this->assertJsonStringEqualsJsonFile($this->expectedAnswer4, $actualAnswer);
     }
-
 }
