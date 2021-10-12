@@ -57,8 +57,8 @@ function getObjectLine(callable $iter, array $curArr, array $parameters): string
             if (in_array($itemName, $keyNames, true)) {
                 return $accLine;
             }
-            $accLine .= $iter($itemName, $curArr[$itemName], $depth + 4, $fixChildrenStatus);
-            return $accLine;
+            $accLineUpdated = $accLine . $iter($itemName, $curArr[$itemName], $depth + 4, $fixChildrenStatus);
+            return $accLineUpdated;
         },
         ''
     );
@@ -71,18 +71,16 @@ function generateDiff(array $diffData, array $keyNames, int $startOffset = -2): 
             return $curArr . PHP_EOL;
         }
         $status = getStatus($curArr, $fixChildrenStatus);
-        if ($status !== "unchanged") {
-            $fixChildrenStatus = true;
-        }
+        $fixChildrenStatusUpdated = $status !== "unchanged" ? true : $fixChildrenStatus;
         $lineSignName = getLineSignNameByStatus($status, $lineName);
         $lineAddSignName = getLineSignNameByStatus($status, $lineName, true);
         $valueLine = getValueLine($curArr, $lineSignName, $depth, 'value');
         $valueAddLine = getValueLine($curArr, $lineAddSignName, $depth, 'valueAdd');
-        $lineSignName = ($status === "modified" && $valueLine !== '') ? $lineAddSignName : $lineSignName;
+        $lineSignNameUpdated = ($status === "modified" && $valueLine !== '') ? $lineAddSignName : $lineSignName;
 
-        $objectLine = getObjectLine($iter, $curArr, [$depth, $fixChildrenStatus, $keyNames]);
+        $objectLine = getObjectLine($iter, $curArr, [$depth, $fixChildrenStatusUpdated, $keyNames]);
         $object = $objectLine !== '';
-        [$lineStart, $lineEnd] = generateLineStartEnd($object, $depth, $lineSignName, $startOffset);
+        [$lineStart, $lineEnd] = generateLineStartEnd($object, $depth, $lineSignNameUpdated, $startOffset);
         return $valueLine . $lineStart . $objectLine . $lineEnd . $valueAddLine;
     };
     return $iter('', $diffData, $startOffset, false);
