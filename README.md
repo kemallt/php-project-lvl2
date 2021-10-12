@@ -10,3 +10,5 @@ demo
 [![asciicast](https://asciinema.org/a/wvjwUEOwALy7bMEPy7h1nX74y.svg)](https://asciinema.org/a/wvjwUEOwALy7bMEPy7h1nX74y)
 demo complex
 [![asciicast](https://asciinema.org/a/440712.svg)](https://asciinema.org/a/440712)
+demo plain formatter
+[![asciicast](https://asciinema.org/a/wunSn7astPds7O8mm0XoF3oB5.svg)](https://asciinema.org/a/wunSn7astPds7O8mm0XoF3oB5)

@@ -38,8 +38,8 @@ if (array_key_exists("<secondFile>", $args)) {
     throw new Exception('no second file name');
 }
 
-if (array_key_exists("<fmt>", $args)) {
-    $formatter = $args["<fmt>"];
+if (array_key_exists("--format", $args)) {
+    $formatter = $args["--format"];
 } else {
     $formatter = "stylish";
 }
