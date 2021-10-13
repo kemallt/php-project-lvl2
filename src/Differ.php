@@ -2,7 +2,6 @@
 
 namespace Differ\Differ;
 
-use function Differ\Additional\sortArray;
 use function Differ\Parsers\getDataFromFile;
 use function Differ\Formatters\getFormattedDiff;
 
@@ -65,17 +64,13 @@ function addItemToCurArr(array $curItemArr, mixed $curItemVal, string $sign): ar
     if ($sign === '+') {
         if (array_key_exists('value', $curItemArr) && $curItemArr['value'] === $curItemVal) {
             $resArr['_sign'] = ' ';
-//            $curItemArr['_sign'] = ' ';
         } else {
             $resArr['_signAdd'] = '+';
             $resArr['valueAdd'] = $curItemVal;
-//            $curItemArr['_signAdd'] = '+';
-//            $curItemArr['valueAdd'] = $curItemVal;
         }
     } else {
         $resArr = $curItemArr;
         $resArr['value'] = $curItemVal;
-//        $curItemArr['value'] = $curItemVal;
     }
     return $resArr;
 }
@@ -90,7 +85,8 @@ function sortDiffArr(array $diffArr): array
             $accArr[$itemName] = $iter($curArr[$itemName]);
             return $accArr;
         }, []);
-        return sortArray($resArr);
+        ksort($resArr);
+        return $resArr;
     };
     return $iter($diffArr);
 }
