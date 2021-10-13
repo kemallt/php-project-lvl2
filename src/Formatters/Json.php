@@ -47,9 +47,10 @@ function getCopyArr(array $curArr, array $keyNames, string $valueName): array
         if (in_array($itemName, $keyNames, true)) {
             return $accArr;
         }
-        $resArr = $accArr;
+//        $resArr = $accArr;
         if (array_key_exists($valueName, $curArr[$itemName])) {
-            $resArr[$itemName] = $curArr[$itemName][$valueName];
+            $resArr = [$itemName => $curArr[$itemName][$valueName], ...$accArr];
+//            $resArr[$itemName] = $curArr[$itemName][$valueName];
         } else {
             $resArr[$itemName] = getCopyArr($curArr[$itemName], $keyNames, $valueName);
         }
