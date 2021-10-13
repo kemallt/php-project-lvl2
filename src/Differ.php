@@ -2,6 +2,7 @@
 
 namespace Differ\Differ;
 
+use function Differ\Additional\sortArray;
 use function Differ\Parsers\getDataFromFile;
 use function Differ\Formatters\getFormattedDiff;
 
@@ -85,11 +86,11 @@ function sortDiffArr(array $diffArr): array
         if (!is_array($curArr)) {
             return $curArr;
         }
-        array_map(function ($itemName, $itemValue) use (&$curArr, &$iter): void {
-            $curArr[$itemName] = $iter($itemValue);
-        }, array_keys($curArr), $curArr);
-        ksort($curArr);
-        return $curArr;
+        $resArr = array_reduce(array_keys($curArr), function ($accArr, $itemName) use ($iter, $curArr) {
+            $accArr[$itemName] = $iter($curArr[$itemName]);
+            return $accArr;
+        }, []);
+        return sortArray($resArr);
     };
     return $iter($diffArr);
 }
