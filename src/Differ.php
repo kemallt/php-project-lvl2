@@ -60,17 +60,23 @@ function getNextItemArr(string $itemName, mixed $itemValue, array $curItemArr, s
 
 function addItemToCurArr(array $curItemArr, mixed $curItemVal, string $sign): array
 {
+    $resArr = $curItemArr;
     if ($sign === '+') {
         if (array_key_exists('value', $curItemArr) && $curItemArr['value'] === $curItemVal) {
-            $curItemArr['_sign'] = ' ';
+            $resArr['_sign'] = ' ';
+//            $curItemArr['_sign'] = ' ';
         } else {
-            $curItemArr['_signAdd'] = '+';
-            $curItemArr['valueAdd'] = $curItemVal;
+            $resArr['_signAdd'] = '+';
+            $resArr['valueAdd'] = $curItemVal;
+//            $curItemArr['_signAdd'] = '+';
+//            $curItemArr['valueAdd'] = $curItemVal;
         }
     } else {
-        $curItemArr['value'] = $curItemVal;
+        $resArr = $curItemArr;
+        $resArr['value'] = $curItemVal;
+//        $curItemArr['value'] = $curItemVal;
     }
-    return $curItemArr;
+    return $resArr;
 }
 
 function sortDiffArr(array $diffArr): array

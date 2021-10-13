@@ -11,8 +11,9 @@ function getObjectEl(callable $iter, array $curArr, array $parameters): array
             if (in_array($itemName, $keyNames, true)) {
                 return $accArr;
             }
-            $accArr[$itemName] = $iter($curArr[$itemName], $status);
-            return $accArr;
+            $resArr = $accArr;
+            $resArr[$itemName] = $iter($curArr[$itemName], $status);
+            return $resArr;
         },
         $resArr
     );
@@ -27,10 +28,8 @@ function generateDiff(mixed $diffData, array $keyNames): string
         $status = getStatus($curArr);
         $addStatus = !($parentStatus === null || ($status !== 'unchanged' && $parentStatus === $status));
         $resArr = getValueArr($curArr, $status, $addStatus, $keyNames);
-        if ($status === 'unchanged') {
-            $resArr = getObjectEl($iter, $curArr, [$status, $keyNames, $resArr]);
-        }
-        return $resArr;
+        $resArrFin = ($status === 'unchanged') ? getObjectEl($iter, $curArr, [$status, $keyNames, $resArr]) : $resArr;
+        return $resArrFin;
     };
 
     $jsonData = $iter($diffData, null);
@@ -48,38 +47,37 @@ function getCopyArr(array $curArr, array $keyNames, string $valueName): array
         if (in_array($itemName, $keyNames, true)) {
             return $accArr;
         }
+        $resArr = $accArr;
         if (array_key_exists($valueName, $curArr[$itemName])) {
-            $accArr[$itemName] = $curArr[$itemName][$valueName];
+            $resArr[$itemName] = $curArr[$itemName][$valueName];
         } else {
-            $accArr[$itemName] = getCopyArr($curArr[$itemName], $keyNames, $valueName);
+            $resArr[$itemName] = getCopyArr($curArr[$itemName], $keyNames, $valueName);
         }
-        return $accArr;
+        return $resArr;
     }, []);
 }
 
 function getValueArr(array $curArr, string $status, bool $addStatus, array $keyNames): array
 {
-    $valueArr = [];
-    if ($addStatus) {
-        $valueArr['status'] = $status;
-    }
+    $valueArr = $addStatus ? ['status' => $status] : [];
     $valueStatuses = ['removed', 'modified'];
     $valueAddStatuses = ['added', 'modified'];
-    $valueArr = fillValueFields($valueArr, $curArr, ['value', 'value', $status, $valueStatuses, $keyNames]);
-    $valueArr = fillValueFields($valueArr, $curArr, ['valueAdd', 'newValue', $status, $valueAddStatuses, $keyNames]);
-    return $valueArr;
+    $resArr = fillValueFields($valueArr, $curArr, ['value', 'value', $status, $valueStatuses, $keyNames]);
+    $resArrFin = fillValueFields($resArr, $curArr, ['valueAdd', 'newValue', $status, $valueAddStatuses, $keyNames]);
+    return $resArrFin;
 }
 
 function fillValueFields(array $valueArr, array $curArr, array $parameters): array
 {
+    $resArr = $valueArr;
     [$valueName, $valueNewName, $status, $checkStatusArr, $keyNames] = $parameters;
     $valueExists = array_key_exists($valueName, $curArr);
     if ($valueExists) {
-        $valueArr[$valueNewName] = $curArr[$valueName];
+        $resArr[$valueNewName] = $curArr[$valueName];
     } elseif (in_array($status, $checkStatusArr, true)) {
-        $valueArr[$valueNewName] = getCopyArr($curArr, $keyNames, $valueName);
+        $resArr[$valueNewName] = getCopyArr($curArr, $keyNames, $valueName);
     }
-    return $valueArr;
+    return $resArr;
 }
 
 function getStatus(array $curArr): string

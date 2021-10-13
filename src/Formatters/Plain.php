@@ -14,8 +14,8 @@ function getObjectLine(callable $iter, array $curArr, array $parameters): string
                 return $accLine;
             }
             $newPath = $path === '' ? $itemName : "{$path}.{$itemName}";
-            $accLine .= $iter($curArr[$itemName], $newPath);
-            return $accLine;
+            $resLine = $accLine . $iter($curArr[$itemName], $newPath);
+            return $resLine;
         },
         $line
     );
@@ -27,21 +27,19 @@ function generateDiff(array $diffData, array $keyNames): string
         if (!is_array($curArr)) {
             return $curArr;
         }
-        $line = '';
         $value = getValue('value', $curArr);
         $valueAdd = getValue('valueAdd', $curArr);
         if ($curArr['_sign'] === '-' && $curArr['_signAdd'] === '+') {
-            $line .= "Property '{$path}' was updated. From {$value} to {$valueAdd}" . PHP_EOL;
+            $line = "Property '{$path}' was updated. From {$value} to {$valueAdd}" . PHP_EOL;
         } elseif ($curArr['_sign'] === '-') {
-            $line .= "Property '{$path}' was removed" . PHP_EOL;
+            $line = "Property '{$path}' was removed" . PHP_EOL;
         } elseif ($curArr['_signAdd'] === '+' || $curArr['_sign'] === '+') {
-            $line .= "Property '{$path}' was added with value: {$valueAdd}" . PHP_EOL;
+            $line = "Property '{$path}' was added with value: {$valueAdd}" . PHP_EOL;
         } else {
-            $line .= getObjectLine($iter, $curArr, [$path, $keyNames, $line]);
+            $line = getObjectLine($iter, $curArr, [$path, $keyNames, '']);
         }
         return $line;
     };
-
     return rtrim($iter($diffData, ''));
 }
 
@@ -49,10 +47,6 @@ function getValue(string $valueName, array $curArr): string
 {
     $value = array_key_exists($valueName, $curArr) ? $curArr[$valueName] : '[complex value]';
     $stringifiedValue = stringifyItem($value);
-    if (is_string($value) && $value !== '[complex value]') {
-        $value = "'{$stringifiedValue}'";
-    } else {
-        $value = "{$stringifiedValue}";
-    }
-    return $value;
+    $valueFin = (is_string($value) && $value !== '[complex value]') ? "'{$stringifiedValue}'" : "{$stringifiedValue}";
+    return $valueFin;
 }
