@@ -13,9 +13,7 @@ function getObjectEl(callable $iter, array $curArr, array $parameters): array
             if (in_array($itemName, $keyNames, true)) {
                 return $accArr;
             }
-            $resArr = $accArr;
-            $resArr[$itemName] = $iter($curArr[$itemName], $status);
-            return $resArr;
+            return array_merge([$itemName => $iter($curArr[$itemName], $status)], $accArr);
         },
         $resArr
     );

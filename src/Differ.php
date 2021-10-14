@@ -29,7 +29,7 @@ function convertItem(object $item, array $itemArr, string $status): mixed
             return addItemToCurArr($curItemArr, $curItemVal, $status);
         }
         $curItemArrayed = (array)$curItem;
-        $curItemArr = array_reduce(
+        $resItemArr = array_reduce(
             array_keys($curItemArrayed),
             function ($accArr, $itemName) use ($iter, &$curItemArrayed, $status) {
                 $nextItemArr = getNextItemArr($itemName, $curItemArrayed[$itemName], $accArr, $status);
@@ -37,7 +37,7 @@ function convertItem(object $item, array $itemArr, string $status): mixed
                 $f = 4;
                 $reduceRes = array_reduce(
                     array_keys($accArr),
-                    function ($reduceRound, $key) use ($itemVal, &$accArr, $itemName) {
+                    function ($reduceRound, $key) use ($itemVal, &$accArr, $itemName): array {
                         [$inserted, $subAccArr] = $reduceRound;
                         if ($itemName >= $key) {
                             $subAccArr[$key] = $accArr[$key];
@@ -55,12 +55,10 @@ function convertItem(object $item, array $itemArr, string $status): mixed
                     $resArr[$itemName] = $itemVal;
                 }
                 return $resArr;
-                $accArr[$itemName] = $itemVal;
-                return $accArr;
             },
             $curItemArr
         );
-        return $curItemArr;
+        return $resItemArr;
     };
     return $iter($item, $itemArr);
 }
