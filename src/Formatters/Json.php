@@ -53,7 +53,6 @@ function getCopyArr(array $curArr, array $keyNames, string $valueName): array
             $resArr = array_merge([$itemName => getCopyArr($curArr[$itemName], $keyNames, $valueName)], $accArr);
         }
         return $resArr;
-        return $resArr;
     }, []);
 }
 

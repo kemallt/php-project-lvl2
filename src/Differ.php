@@ -31,7 +31,7 @@ function convertItem(object $item, array $itemArr, string $status): mixed
         $curItemArrayed = (array)$curItem;
         $resItemArr = array_reduce(
             array_keys($curItemArrayed),
-            function ($accArr, $itemName) use ($iter, &$curItemArrayed, $status) {
+            function ($accArr, $itemName) use ($iter, &$curItemArrayed, $status): array {
                 $nextItemArr = getNextItemArr($itemName, $curItemArrayed[$itemName], $accArr, $status);
                 $itemVal = $iter($curItemArrayed[$itemName], $nextItemArr);
                 $f = 4;
