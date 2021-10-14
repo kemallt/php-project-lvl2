@@ -48,11 +48,12 @@ function getCopyArr(array $curArr, array $keyNames, string $valueName): array
             return $accArr;
         }
         if (array_key_exists($valueName, $curArr[$itemName])) {
-            $accArr[$itemName] = $curArr[$itemName][$valueName];
+            $resArr = array_merge([$itemName => $curArr[$itemName][$valueName]], $accArr);
         } else {
-            $accArr[$itemName] = getCopyArr($curArr[$itemName], $keyNames, $valueName);
+            $resArr = array_merge([$itemName => getCopyArr($curArr[$itemName], $keyNames, $valueName)], $accArr);
         }
-        return $accArr;
+        return $resArr;
+        return $resArr;
     }, []);
 }
 
@@ -68,13 +69,14 @@ function getValueArr(array $curArr, string $status, bool $addStatus, array $keyN
 
 function fillValueFields(array $valueArr, array $curArr, array $parameters): array
 {
-    $resArr = $valueArr;
     [$valueName, $valueNewName, $status, $checkStatusArr, $keyNames] = $parameters;
     $valueExists = array_key_exists($valueName, $curArr);
     if ($valueExists) {
-        $resArr[$valueNewName] = $curArr[$valueName];
+        $resArr = array_merge([$valueNewName => $curArr[$valueName]], $valueArr);
     } elseif (in_array($status, $checkStatusArr, true)) {
-        $resArr[$valueNewName] = getCopyArr($curArr, $keyNames, $valueName);
+        $resArr = array_merge([$valueNewName => getCopyArr($curArr, $keyNames, $valueName)], $valueArr);
+    } else {
+        $resArr = $valueArr;
     }
     return $resArr;
 }
