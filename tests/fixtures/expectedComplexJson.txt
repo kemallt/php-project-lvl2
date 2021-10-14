@@ -10,7 +10,7 @@
 			"value": "Value 1"
 		},
 		"setting2": {
-			"status": "removed",
+			"status": "deleted",
 			"value": 200
 		},
 		"setting3": {
@@ -68,7 +68,7 @@
 		}
 	},
 	"group2": {
-		"status": "removed",
+		"status": "deleted",
 		"value": {
 			"abc": 12345,
 			"deep": {

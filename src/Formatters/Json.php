@@ -2,6 +2,8 @@
 
 namespace Differ\Formatters\Json;
 
+use function Differ\Additional\getStatus;
+
 function getObjectEl(callable $iter, array $curArr, array $parameters): array
 {
     [$status, $keyNames, $resArr] = $parameters;
@@ -59,10 +61,10 @@ function getCopyArr(array $curArr, array $keyNames, string $valueName): array
 function getValueArr(array $curArr, string $status, bool $addStatus, array $keyNames): array
 {
     $valueArr = $addStatus ? ['status' => $status] : [];
-    $valueStatuses = ['removed', 'modified'];
+    $valueStatuses = ['deleted', 'modified'];
     $valueAddStatuses = ['added', 'modified'];
-    $resArr = fillValueFields($valueArr, $curArr, ['value', 'value', $status, $valueStatuses, $keyNames]);
-    $resArrFin = fillValueFields($resArr, $curArr, ['valueAdd', 'newValue', $status, $valueAddStatuses, $keyNames]);
+    $resArr = fillValueFields($valueArr, $curArr, ['_value', 'value', $status, $valueStatuses, $keyNames]);
+    $resArrFin = fillValueFields($resArr, $curArr, ['_newValue', 'newValue', $status, $valueAddStatuses, $keyNames]);
     return $resArrFin;
 }
 
@@ -77,19 +79,4 @@ function fillValueFields(array $valueArr, array $curArr, array $parameters): arr
         $resArr[$valueNewName] = getCopyArr($curArr, $keyNames, $valueName);
     }
     return $resArr;
-}
-
-function getStatus(array $curArr): string
-{
-    $sign = $curArr['_sign'];
-    $signAdd = $curArr['_signAdd'];
-    if ($sign === '+') {
-        return 'added';
-    } elseif ($sign === ' ') {
-        return 'unchanged';
-    } elseif ($signAdd === '+') {
-        return 'modified';
-    } else {
-        return 'removed';
-    }
 }

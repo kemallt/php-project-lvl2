@@ -15,3 +15,8 @@ function stringifyItem(mixed $item): mixed
     }
     return $res;
 }
+
+function getStatus(array $curArr, bool $fixChildrenStatus = false): string
+{
+    return $fixChildrenStatus ? 'unchanged' : $curArr['_status'];
+}

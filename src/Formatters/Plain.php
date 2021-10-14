@@ -2,6 +2,7 @@
 
 namespace Differ\Formatters\Plain;
 
+use function Differ\Additional\getStatus;
 use function Differ\Additional\stringifyItem;
 
 function getObjectLine(callable $iter, array $curArr, array $parameters): string
@@ -27,16 +28,22 @@ function generateDiff(array $diffData, array $keyNames): string
         if (!is_array($curArr)) {
             return $curArr;
         }
-        $value = getValue('value', $curArr);
-        $valueAdd = getValue('valueAdd', $curArr);
-        if ($curArr['_sign'] === '-' && $curArr['_signAdd'] === '+') {
-            $line = "Property '{$path}' was updated. From {$value} to {$valueAdd}" . PHP_EOL;
-        } elseif ($curArr['_sign'] === '-') {
-            $line = "Property '{$path}' was removed" . PHP_EOL;
-        } elseif ($curArr['_signAdd'] === '+' || $curArr['_sign'] === '+') {
-            $line = "Property '{$path}' was added with value: {$valueAdd}" . PHP_EOL;
-        } else {
-            $line = getObjectLine($iter, $curArr, [$path, $keyNames, '']);
+        $value = getValue('_value', $curArr);
+        $valueAdd = getValue('_newValue', $curArr);
+        $status = getStatus($curArr);
+        switch ($status) {
+            case "modified":
+                $line = "Property '{$path}' was updated. From {$value} to {$valueAdd}" . PHP_EOL;
+                break;
+            case "deleted":
+                $line = "Property '{$path}' was removed" . PHP_EOL;
+                break;
+            case "added":
+                $line = "Property '{$path}' was added with value: {$valueAdd}" . PHP_EOL;
+                break;
+            default:
+                $line = getObjectLine($iter, $curArr, [$path, $keyNames, '']);
+                break;
         }
         return $line;
     };

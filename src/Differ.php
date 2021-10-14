@@ -7,34 +7,55 @@ use function Differ\Formatters\getFormattedDiff;
 
 function genDiff(string $pathToFile1, string $pathToFile2, string $formatter = "stylish"): string
 {
-    $keyNames = ['_sign', '_signAdd', 'value', 'valueAdd'];
+    $keyNames = ['_status', '_value', '_newValue'];
     $data1 = getDataFromFile($pathToFile1);
     $data2 = getDataFromFile($pathToFile2);
 
-    $diffData = createDiffObjects($data1, $data2);
-    $sortedDiffData = sortDiffArr($diffData);
+    $sortedDiffData = createDiffObjects($data1, $data2);
     return getFormattedDiff($sortedDiffData, $keyNames, $formatter);
 }
 
 function createDiffObjects(object $data1, object $data2): array
 {
-    $dataArr = convertItem($data1, ['_sign' => ' ', '_signAdd' => ' '], '-');
-    return convertItem($data2, $dataArr, '+');
+    $dataArr = convertItem($data1, ['_status' => 'unchanged'], 'deleted');
+    return convertItem($data2, $dataArr, 'added');
 }
 
-function convertItem(object $item, array $itemArr, string $sign): mixed
+function convertItem(object $item, array $itemArr, string $status): mixed
 {
-    $iter = function ($curItem, $curItemArr) use (&$iter, $sign) {
+    $iter = function ($curItem, $curItemArr) use (&$iter, $status) {
         if (!is_object($curItem)) {
             $curItemVal = $curItem;
-            return addItemToCurArr($curItemArr, $curItemVal, $sign);
+            return addItemToCurArr($curItemArr, $curItemVal, $status);
         }
         $curItemArrayed = (array)$curItem;
         $curItemArr = array_reduce(
             array_keys($curItemArrayed),
-            function ($accArr, $itemName) use ($iter, &$curItemArrayed, $sign) {
-                $nextItemArr = getNextItemArr($itemName, $curItemArrayed[$itemName], $accArr, $sign);
-                $accArr[$itemName] = $iter($curItemArrayed[$itemName], $nextItemArr);
+            function ($accArr, $itemName) use ($iter, &$curItemArrayed, $status) {
+                $nextItemArr = getNextItemArr($itemName, $curItemArrayed[$itemName], $accArr, $status);
+                $itemVal = $iter($curItemArrayed[$itemName], $nextItemArr);
+                $f = 4;
+                $reduceRes = array_reduce(
+                    array_keys($accArr),
+                    function ($reduceRound, $key) use ($itemVal, &$accArr, $itemName) {
+                        [$inserted, $subAccArr] = $reduceRound;
+                        if ($itemName >= $key) {
+                            $subAccArr[$key] = $accArr[$key];
+                        } else {
+                            $subAccArr[$itemName] = $itemVal;
+                            $subAccArr[$key] = $accArr[$key];
+                            $inserted = true;
+                        }
+                        return [$inserted, $subAccArr];
+                    },
+                    [false, []]
+                );
+                [$inserted, $resArr] = $reduceRes;
+                if (!$inserted) {
+                    $resArr[$itemName] = $itemVal;
+                }
+                return $resArr;
+                $accArr[$itemName] = $itemVal;
                 return $accArr;
             },
             $curItemArr
@@ -44,16 +65,17 @@ function convertItem(object $item, array $itemArr, string $sign): mixed
     return $iter($item, $itemArr);
 }
 
-function getNextItemArr(string $itemName, mixed $itemValue, array $curItemArr, string $sign): array
+function getNextItemArr(string $itemName, mixed $itemValue, array $curItemArr, string $status): array
 {
     if (array_key_exists($itemName, $curItemArr)) {
         $nextItemArr = $curItemArr[$itemName];
         $itemIsObject = is_object($itemValue);
-        $valueExists = array_key_exists('value', $nextItemArr);
-        $nextItemArr['_signAdd'] = ($itemIsObject && $valueExists) ? $sign : $nextItemArr['_signAdd'];
-        $nextItemArr['_sign'] = ($itemIsObject && !$valueExists) ? ' ' : $nextItemArr['_sign'];
+        $valueExists = array_key_exists('_value', $nextItemArr);
+        if ($itemIsObject) {
+            $nextItemArr['_status'] = $valueExists ? 'modified' : 'unchanged';
+        }
     } else {
-        $nextItemArr = array('_sign' => $sign, '_signAdd' => '');
+        $nextItemArr = array('_status' => $status);
     }
     return $nextItemArr;
 }
@@ -61,32 +83,19 @@ function getNextItemArr(string $itemName, mixed $itemValue, array $curItemArr, s
 function addItemToCurArr(array $curItemArr, mixed $curItemVal, string $sign): array
 {
     $resArr = $curItemArr;
-    if ($sign === '+') {
-        if (array_key_exists('value', $curItemArr) && $curItemArr['value'] === $curItemVal) {
-            $resArr['_sign'] = ' ';
+    if ($sign === 'added') {
+        if (array_key_exists('_value', $curItemArr) && $curItemArr['_value'] === $curItemVal) {
+            $resArr['_status'] = 'unchanged';
+        } elseif ($curItemArr['_status'] === 'deleted') {
+            $resArr['_status'] = 'modified';
+            $resArr['_newValue'] = $curItemVal;
         } else {
-            $resArr['_signAdd'] = '+';
-            $resArr['valueAdd'] = $curItemVal;
+            $resArr['_status'] = 'added';
+            $resArr['_newValue'] = $curItemVal;
         }
     } else {
         $resArr = $curItemArr;
-        $resArr['value'] = $curItemVal;
+        $resArr['_value'] = $curItemVal;
     }
     return $resArr;
-}
-
-function sortDiffArr(array $diffArr): array
-{
-    $iter = function ($curArr) use (&$iter) {
-        if (!is_array($curArr)) {
-            return $curArr;
-        }
-        $resArr = array_reduce(array_keys($curArr), function ($accArr, $itemName) use ($iter, $curArr) {
-            $accArr[$itemName] = $iter($curArr[$itemName]);
-            return $accArr;
-        }, []);
-        ksort($resArr);
-        return $resArr;
-    };
-    return $iter($diffArr);
 }

@@ -3,25 +3,7 @@
 namespace Differ\Formatters\Stylish;
 
 use function Differ\Additional\stringifyItem;
-
-function getStatus(array $curArr, bool $fixChildrenStatus = false): string
-{
-    $sign = $curArr['_sign'];
-    $signAdd = $curArr['_signAdd'];
-    if ($fixChildrenStatus) {
-        return "unchanged";
-    }
-    if ($sign === '+') {
-        $status = "added";
-    } elseif ($sign === " ") {
-        $status = "unchanged";
-    } elseif ($signAdd === "+") {
-        $status = "modified";
-    } else {
-        $status = "deleted";
-    }
-    return $status;
-}
+use function Differ\Additional\getStatus;
 
 function getLineSignNameByStatus(string $status, string $lineName, bool $signAdd = false): string
 {
@@ -74,8 +56,8 @@ function generateDiff(array $diffData, array $keyNames, int $startOffset = -2): 
         $fixChildrenStatusUpdated = $status !== "unchanged" ? true : $fixChildrenStatus;
         $lineSignName = getLineSignNameByStatus($status, $lineName);
         $lineAddSignName = getLineSignNameByStatus($status, $lineName, true);
-        $valueLine = getValueLine($curArr, $lineSignName, $depth, 'value');
-        $valueAddLine = getValueLine($curArr, $lineAddSignName, $depth, 'valueAdd');
+        $valueLine = getValueLine($curArr, $lineSignName, $depth, '_value');
+        $valueAddLine = getValueLine($curArr, $lineAddSignName, $depth, '_newValue');
         $lineSignNameUpdated = ($status === "modified" && $valueLine !== '') ? $lineAddSignName : $lineSignName;
 
         $objectLine = getObjectLine($iter, $curArr, [$depth, $fixChildrenStatusUpdated, $keyNames]);
