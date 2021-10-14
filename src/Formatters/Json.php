@@ -4,21 +4,6 @@ namespace Differ\Formatters\Json;
 
 use function Differ\Additional\getStatus;
 
-function getObjectEl(callable $iter, array $curArr, array $parameters): array
-{
-    [$status, $keyNames, $resArr] = $parameters;
-    return array_reduce(
-        array_keys($curArr),
-        function ($accArr, $itemName) use ($iter, $curArr, $status, $keyNames) {
-            if (in_array($itemName, $keyNames, true)) {
-                return $accArr;
-            }
-            return array_merge([$itemName => $iter($curArr[$itemName], $status)], $accArr);
-        },
-        $resArr
-    );
-}
-
 function generateDiff(mixed $diffData, array $keyNames): string
 {
     $iter = function ($curArr, $parentStatus) use (&$iter, $keyNames) {
@@ -39,6 +24,21 @@ function generateDiff(mixed $diffData, array $keyNames): string
     } else {
         return $jsonDiff;
     }
+}
+
+function getObjectEl(callable $iter, array $curArr, array $parameters): array
+{
+    [$status, $keyNames, $resArr] = $parameters;
+    return array_reduce(
+        array_keys($curArr),
+        function ($accArr, $itemName) use ($iter, $curArr, $status, $keyNames) {
+            if (in_array($itemName, $keyNames, true)) {
+                return $accArr;
+            }
+            return array_merge([$itemName => $iter($curArr[$itemName], $status)], $accArr);
+        },
+        $resArr
+    );
 }
 
 function getCopyArr(array $curArr, array $keyNames, string $valueName): array

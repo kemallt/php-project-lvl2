@@ -54,7 +54,7 @@ class DifferTest extends \PHPUnit\Framework\TestCase
     public function testGenDiffComplexYaml()
     {
         $file1 = __DIR__ . '/fixtures/complexFile1.yml';
-        $file2 = __DIR__ . '/fixtures/complexFile2.yml';
+        $file2 = __DIR__ . '/fixtures/complexFile2.yaml';
         $actualAnswer = genDiff($file1, $file2, 'stylish');
         $this->assertEquals($this->expectedAnswer2, $actualAnswer);
     }

@@ -45,25 +45,6 @@ function convertItem(object $item, array $itemArr, string $status): mixed
     return $iter($item, $itemArr);
 }
 
-function addNewItemSort($accArr, $itemVal, $itemName)
-{
-    return array_reduce(
-        array_keys($accArr),
-        function ($reduceRound, $key) use ($itemVal, &$accArr, $itemName): array {
-            $subAccArr = $reduceRound[1];
-            if ($itemName >= $key) {
-                $resSubAccArr = array_merge($subAccArr, [$key => $accArr[$key]]);
-                $inserted = false;
-            } else {
-                $resSubAccArr = array_merge($subAccArr, [$itemName => $itemVal, $key => $accArr[$key]]);
-                $inserted = true;
-            }
-            return [$inserted, $resSubAccArr];
-        },
-        [false, []]
-    );
-}
-
 function getNextItemArr(string $itemName, mixed $itemValue, array $curItemArr, string $status): array
 {
     if (array_key_exists($itemName, $curItemArr)) {
@@ -95,4 +76,23 @@ function addItemToCurArr(array $curItemArr, mixed $curItemVal, string $status): 
         $addArr = ['_status' => 'added', '_newValue' => $curItemVal];
     }
     return array_merge($curItemArr, $addArr);
+}
+
+function addNewItemSort(array $accArr, mixed $itemVal, string $itemName): array
+{
+    return array_reduce(
+        array_keys($accArr),
+        function ($reduceRound, $key) use ($itemVal, &$accArr, $itemName): array {
+            $subAccArr = $reduceRound[1];
+            if ($itemName >= $key) {
+                $resSubAccArr = array_merge($subAccArr, [$key => $accArr[$key]]);
+                $inserted = false;
+            } else {
+                $resSubAccArr = array_merge($subAccArr, [$itemName => $itemVal, $key => $accArr[$key]]);
+                $inserted = true;
+            }
+            return [$inserted, $resSubAccArr];
+        },
+        [false, []]
+    );
 }
