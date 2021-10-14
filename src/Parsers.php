@@ -17,12 +17,16 @@ function getDataFromFile(string $pathToFile): object
     if ($fileContent === false) {
         return new \stdClass();
     }
-    if ($extension === 'json') {
-        $data = json_decode($fileContent);
-    } elseif ($extension === 'yml' || $extension === 'yaml') {
-        $data = Yaml::parse($fileContent, Yaml::PARSE_OBJECT_FOR_MAP);
-    } else {
-        $data = new \stdClass();
+    switch ($extension) {
+        case 'json':
+            $data = json_decode($fileContent);
+            break;
+        case 'yml':
+        case 'yaml':
+            $data = Yaml::parse($fileContent, Yaml::PARSE_OBJECT_FOR_MAP);
+            break;
+        default:
+            $data = new \stdClass();
     }
     return $data;
 }

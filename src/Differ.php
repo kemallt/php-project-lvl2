@@ -34,29 +34,8 @@ function convertItem(object $item, array $itemArr, string $status): mixed
             function ($accArr, $itemName) use ($iter, &$curItemArrayed, $status): array {
                 $nextItemArr = getNextItemArr($itemName, $curItemArrayed[$itemName], $accArr, $status);
                 $itemVal = $iter($curItemArrayed[$itemName], $nextItemArr);
-                $f = 4;
-                $reduceRes = array_reduce(
-                    array_keys($accArr),
-                    function ($reduceRound, $key) use ($itemVal, &$accArr, $itemName): array {
-                        $subAccArr = $reduceRound['subAccArr'];
-                        if ($itemName >= $key) {
-                            $resSubAccArr = array_merge($subAccArr, [$key => $accArr[$key]]);
-                            $inserted = false;
-                        } else {
-                            $resSubAccArr = array_merge($subAccArr, [$itemName => $itemVal, $key => $accArr[$key]]);
-                            $inserted = true;
-                        }
-                        return ['inserted' => $inserted, 'subAccArr' => $resSubAccArr];
-                    },
-                    ['inserted' => false, 'subAccArr' => []]
-                );
-                $inserted = $reduceRes['inserted'];
-                $resArr = $reduceRes['subAccArr'];
-                if (!$inserted) {
-                    $finResArr = array_merge($resArr, [$itemName => $itemVal]);
-                } else {
-                    $finResArr = $resArr;
-                }
+                [$inserted, $resArr] = addNewItemSort($accArr, $itemVal, $itemName);
+                $finResArr = $inserted ? $resArr : array_merge($resArr, [$itemName => $itemVal]);
                 return $finResArr;
             },
             $curItemArr
@@ -64,6 +43,25 @@ function convertItem(object $item, array $itemArr, string $status): mixed
         return $resItemArr;
     };
     return $iter($item, $itemArr);
+}
+
+function addNewItemSort($accArr, $itemVal, $itemName)
+{
+    return array_reduce(
+        array_keys($accArr),
+        function ($reduceRound, $key) use ($itemVal, &$accArr, $itemName): array {
+            $subAccArr = $reduceRound[1];
+            if ($itemName >= $key) {
+                $resSubAccArr = array_merge($subAccArr, [$key => $accArr[$key]]);
+                $inserted = false;
+            } else {
+                $resSubAccArr = array_merge($subAccArr, [$itemName => $itemVal, $key => $accArr[$key]]);
+                $inserted = true;
+            }
+            return [$inserted, $resSubAccArr];
+        },
+        [false, []]
+    );
 }
 
 function getNextItemArr(string $itemName, mixed $itemValue, array $curItemArr, string $status): array
@@ -84,18 +82,17 @@ function getNextItemArr(string $itemName, mixed $itemValue, array $curItemArr, s
     return $nextItemArr;
 }
 
-function addItemToCurArr(array $curItemArr, mixed $curItemVal, string $sign): array
+function addItemToCurArr(array $curItemArr, mixed $curItemVal, string $status): array
 {
-    if ($sign === 'added') {
-        if (array_key_exists('_value', $curItemArr) && $curItemArr['_value'] === $curItemVal) {
-            $resArr = array_merge($curItemArr, ['_status' => 'unchanged']);
-        } elseif ($curItemArr['_status'] === 'deleted') {
-            $resArr = array_merge($curItemArr, ['_status' => 'modified', '_newValue' => $curItemVal]);
-        } else {
-            $resArr = array_merge($curItemArr, ['_status' => 'added', '_newValue' => $curItemVal]);
-        }
-    } else {
-        $resArr = array_merge($curItemArr, ['_value' => $curItemVal]);
+    if ($status !== 'added') {
+        return array_merge($curItemArr, ['_value' => $curItemVal]);
     }
-    return $resArr;
+    if (array_key_exists('_value', $curItemArr) && $curItemArr['_value'] === $curItemVal) {
+        $addArr = ['_status' => 'unchanged'];
+    } elseif ($curItemArr['_status'] === 'deleted') {
+        $addArr = ['_status' => 'modified', '_newValue' => $curItemVal];
+    } else {
+        $addArr = ['_status' => 'added', '_newValue' => $curItemVal];
+    }
+    return array_merge($curItemArr, $addArr);
 }
