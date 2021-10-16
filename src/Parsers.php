@@ -10,23 +10,28 @@ function getDataFromFile(string $pathToFile): object
     if (array_key_exists('extension', $pathParts)) {
         $extension = $pathParts['extension'];
     } else {
-        return new \stdClass();
+        throw new Exception("could not get file extension from {$pathToFile}");
     }
 
     $fileContent = file_get_contents($pathToFile);
     if ($fileContent === false) {
-        return new \stdClass();
+        throw new Exception("could not get file content from {$pathToFile}");
     }
+    return parseData($extension, $fileContent);
+}
+
+function parseData($extension, $data)
+{
     switch ($extension) {
         case 'json':
-            $data = json_decode($fileContent);
+            $data = json_decode($data);
             break;
         case 'yml':
         case 'yaml':
-            $data = Yaml::parse($fileContent, Yaml::PARSE_OBJECT_FOR_MAP);
+            $data = Yaml::parse($data, Yaml::PARSE_OBJECT_FOR_MAP);
             break;
         default:
-            $data = new \stdClass();
+            throw new Exception('unknown extension');
     }
     return $data;
 }

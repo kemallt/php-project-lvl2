@@ -2,6 +2,9 @@
 
 namespace Differ\Additional;
 
+use const Differ\Differ\STATUSNAME;
+use const Differ\Differ\UNCHANGED;
+
 function stringifyItem(mixed $item): mixed
 {
     if ($item === true) {
@@ -16,7 +19,7 @@ function stringifyItem(mixed $item): mixed
     return $res;
 }
 
-function getStatus(array $curArr, bool $fixChildrenStatus = false): string
+function getStatus(array $data, bool $fixChildrenStatus = false): string
 {
-    return $fixChildrenStatus ? 'unchanged' : $curArr['_status'];
+    return $fixChildrenStatus ? UNCHANGED : $data[STATUSNAME];
 }

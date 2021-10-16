@@ -5,9 +5,23 @@ namespace Differ\Differ;
 use function Differ\Parsers\getDataFromFile;
 use function Differ\Formatters\getFormattedDiff;
 
+const ADDED = 'added';
+const MODIFIED = 'modified';
+const DELETED = 'deleted';
+const UNCHANGED = 'unchanged';
+const STATUSNAME = 'status';
+const VALUENAME = 'value';
+const NEWVALUENAME = 'newValue';
+
 function genDiff(string $pathToFile1, string $pathToFile2, string $formatter = "stylish"): string
 {
-    $keyNames = ['_status', '_value', '_newValue'];
+    if (empty($pathToFile1)) {
+        throw new Exception('no first file name');
+    }
+    if (empty($pathToFile2)) {
+        throw new Exception('no second file name');
+    }
+    $keyNames = [STATUSNAME, VALUENAME, NEWVALUENAME];
     $data1 = getDataFromFile($pathToFile1);
     $data2 = getDataFromFile($pathToFile2);
 
@@ -17,81 +31,80 @@ function genDiff(string $pathToFile1, string $pathToFile2, string $formatter = "
 
 function createDiffObjects(object $data1, object $data2): array
 {
-    $dataArr = convertItem($data1, ['_status' => 'unchanged'], 'deleted');
-    return convertItem($data2, $dataArr, 'added');
+    $convertedData = convertItem($data1, [STATUSNAME => UNCHANGED], DELETED);
+    return convertItem($data2, $convertedData, ADDED);
 }
 
-function convertItem(object $item, array $itemArr, string $status): mixed
+function convertItem(object $item, array $itemData, string $status): mixed
 {
-    $iter = function ($curItem, $curItemArr) use (&$iter, $status) {
+    $iter = function ($curItem, $current) use (&$iter, $status) {
         if (!is_object($curItem)) {
             $curItemVal = $curItem;
-            return addItemToCurArr($curItemArr, $curItemVal, $status);
+            return addItemToCurrent($current, $curItemVal, $status);
         }
-        $curItemArrayed = (array)$curItem;
-        $resItemArr = array_reduce(
-            array_keys($curItemArrayed),
-            function ($accArr, $itemName) use ($iter, &$curItemArrayed, $status): array {
-                $nextItemArr = getNextItemArr($itemName, $curItemArrayed[$itemName], $accArr, $status);
-                $itemVal = $iter($curItemArrayed[$itemName], $nextItemArr);
-                [$inserted, $resArr] = addNewItemSort($accArr, $itemVal, $itemName);
-                $finResArr = $inserted ? $resArr : array_merge($resArr, [$itemName => $itemVal]);
-                return $finResArr;
+        $currentData = (array)$curItem;
+        $resItem = array_reduce(
+            array_keys($currentData),
+            function ($acc, $itemName) use ($iter, &$currentData, $status): array {
+                $nextItem = getNextItem($itemName, $currentData[$itemName], $acc, $status);
+                $itemVal = $iter($currentData[$itemName], $nextItem);
+                [$inserted, $result] = addNewItemSort($acc, $itemVal, $itemName);
+                return $inserted ? $result : array_merge($result, [$itemName => $itemVal]);
             },
-            $curItemArr
+            $current
         );
-        return $resItemArr;
+        return $resItem;
     };
-    return $iter($item, $itemArr);
+    return $iter($item, $itemData);
 }
 
-function getNextItemArr(string $itemName, mixed $itemValue, array $curItemArr, string $status): array
+function getNextItem(string $itemName, mixed $itemValue, array $current, string $status): array
 {
-    if (array_key_exists($itemName, $curItemArr)) {
-        $curNextItemArr = $curItemArr[$itemName];
+    if (array_key_exists($itemName, $current)) {
+        $currentNextItem = $current[$itemName];
         $itemIsObject = is_object($itemValue);
-        $valueExists = array_key_exists('_value', $curNextItemArr);
+        $valueExists = array_key_exists(VALUENAME, $currentNextItem);
         if ($itemIsObject) {
-            $newStatus = $valueExists ? 'modified' : 'unchanged';
-            $nextItemArr = array_merge($curNextItemArr, ['_status' => $newStatus]);
+            $newStatus = $valueExists ? MODIFIED : UNCHANGED;
+            $nextItem = array_merge($currentNextItem, [STATUSNAME => $newStatus]);
         } else {
-            $nextItemArr = $curNextItemArr;
+            $nextItem = $currentNextItem;
         }
     } else {
-        $nextItemArr = array('_status' => $status);
+        $nextItem = array(STATUSNAME => $status);
     }
-    return $nextItemArr;
+    return $nextItem;
 }
 
-function addItemToCurArr(array $curItemArr, mixed $curItemVal, string $status): array
+function addItemToCurrent(array $current, mixed $curItemVal, string $status): array
 {
-    if ($status !== 'added') {
-        return array_merge($curItemArr, ['_value' => $curItemVal]);
+    if ($status !== ADDED) {
+        return array_merge($current, [VALUENAME => $curItemVal]);
     }
-    if (array_key_exists('_value', $curItemArr) && $curItemArr['_value'] === $curItemVal) {
-        $addArr = ['_status' => 'unchanged'];
-    } elseif ($curItemArr['_status'] === 'deleted') {
-        $addArr = ['_status' => 'modified', '_newValue' => $curItemVal];
+    if (array_key_exists(VALUENAME, $current) && $current[VALUENAME] === $curItemVal) {
+        $add = [STATUSNAME => UNCHANGED];
+    } elseif ($current[STATUSNAME] === DELETED) {
+        $add = [STATUSNAME => MODIFIED, NEWVALUENAME => $curItemVal];
     } else {
-        $addArr = ['_status' => 'added', '_newValue' => $curItemVal];
+        $add = [STATUSNAME => ADDED, NEWVALUENAME => $curItemVal];
     }
-    return array_merge($curItemArr, $addArr);
+    return array_merge($current, $add);
 }
 
-function addNewItemSort(array $accArr, mixed $itemVal, string $itemName): array
+function addNewItemSort(array $acc, mixed $itemVal, string $itemName): array
 {
     return array_reduce(
-        array_keys($accArr),
-        function ($reduceRound, $key) use ($itemVal, &$accArr, $itemName): array {
-            $subAccArr = $reduceRound[1];
+        array_keys($acc),
+        function ($reduceRound, $key) use ($itemVal, &$acc, $itemName): array {
+            $subAcc = $reduceRound[1];
             if ($itemName >= $key) {
-                $resSubAccArr = array_merge($subAccArr, [$key => $accArr[$key]]);
+                $resSubAcc = array_merge($subAcc, [$key => $acc[$key]]);
                 $inserted = false;
             } else {
-                $resSubAccArr = array_merge($subAccArr, [$itemName => $itemVal, $key => $accArr[$key]]);
+                $resSubAcc = array_merge($subAcc, [$itemName => $itemVal, $key => $acc[$key]]);
                 $inserted = true;
             }
-            return [$inserted, $resSubAccArr];
+            return [$inserted, $resSubAcc];
         },
         [false, []]
     );

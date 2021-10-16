@@ -26,21 +26,8 @@ DOC;
 
 $response = Docopt::handle($doc, array('version' => 'gendiff 1.0'));
 $args = $response->args;
-if (array_key_exists("<firstFile>", $args)) {
-    $firstFile = $args["<firstFile>"];
-} else {
-    throw new Exception('no first file name');
-}
-if (array_key_exists("<secondFile>", $args)) {
-    $secondFile = $args["<secondFile>"];
-} else {
-    throw new Exception('no second file name');
-}
-
-if (array_key_exists("--format", $args)) {
-    $formatter = $args["--format"];
-} else {
-    $formatter = "stylish";
-}
+$firstFile = $args["<firstFile>"] ?? null;
+$secondFile = $args["<secondFile>"] ?? null;
+$formatter = $args["----format"] ?? "stylish";
 
 echo genDiff($firstFile, $secondFile, $formatter);

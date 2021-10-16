@@ -5,19 +5,26 @@ namespace Differ\Formatters\Stylish;
 use function Differ\Additional\stringifyItem;
 use function Differ\Additional\getStatus;
 
+use const Differ\Differ\ADDED;
+use const Differ\Differ\DELETED;
+use const Differ\Differ\MODIFIED;
+use const Differ\Differ\NEWVALUENAME;
+use const Differ\Differ\UNCHANGED;
+use const Differ\Differ\VALUENAME;
+
 function getLineSignNameByStatus(string $status, string $lineName, bool $signAdd = false): string
 {
     switch ($status) {
-        case "unchanged":
+        case UNCHANGED:
             $sign = ' ';
             break;
-        case "added":
+        case ADDED:
             $sign = '+';
             break;
-        case "deleted":
+        case DELETED:
             $sign = '-';
             break;
-        case "modified":
+        case MODIFIED:
             if ($signAdd) {
                 $sign = '+';
             } else {
@@ -30,16 +37,16 @@ function getLineSignNameByStatus(string $status, string $lineName, bool $signAdd
     return $sign . ' ' . $lineName;
 }
 
-function getObjectLine(callable $iter, array $curArr, array $parameters): string
+function getObjectLine(callable $iter, array $curent, array $parameters): string
 {
     [$depth, $fixChildrenStatus, $keyNames] = $parameters;
     return array_reduce(
-        array_keys($curArr),
-        function ($accLine, $itemName) use ($iter, $curArr, $depth, $fixChildrenStatus, $keyNames) {
+        array_keys($curent),
+        function ($accLine, $itemName) use ($iter, $curent, $depth, $fixChildrenStatus, $keyNames) {
             if (in_array($itemName, $keyNames, true)) {
                 return $accLine;
             }
-            $accLineUpdated = $accLine . $iter($itemName, $curArr[$itemName], $depth + 4, $fixChildrenStatus);
+            $accLineUpdated = $accLine . $iter($itemName, $curent[$itemName], $depth + 4, $fixChildrenStatus);
             return $accLineUpdated;
         },
         ''
@@ -48,19 +55,19 @@ function getObjectLine(callable $iter, array $curArr, array $parameters): string
 
 function generateDiff(array $diffData, array $keyNames, int $startOffset = -2): string
 {
-    $iter = function ($lineName, $curArr, $depth, $fixChildrenStatus) use (&$iter, $keyNames, $startOffset): string {
-        if (!is_array($curArr)) {
-            return $curArr . PHP_EOL;
+    $iter = function ($lineName, $curent, $depth, $fixChildrenStatus) use (&$iter, $keyNames, $startOffset): string {
+        if (!is_array($curent)) {
+            return $curent . PHP_EOL;
         }
-        $status = getStatus($curArr, $fixChildrenStatus);
-        $fixChildrenStatusUpdated = $status !== "unchanged" ? true : $fixChildrenStatus;
+        $status = getStatus($curent, $fixChildrenStatus);
+        $fixChildrenStatusUpdated = $status !== UNCHANGED ? true : $fixChildrenStatus;
         $lineSignName = getLineSignNameByStatus($status, $lineName);
         $lineAddSignName = getLineSignNameByStatus($status, $lineName, true);
-        $valueLine = getValueLine($curArr, $lineSignName, $depth, '_value');
-        $valueAddLine = getValueLine($curArr, $lineAddSignName, $depth, '_newValue');
-        $lineSignNameUpdated = ($status === "modified" && $valueLine !== '') ? $lineAddSignName : $lineSignName;
+        $valueLine = getValueLine($curent, $lineSignName, $depth, VALUENAME);
+        $valueAddLine = getValueLine($curent, $lineAddSignName, $depth, NEWVALUENAME);
+        $lineSignNameUpdated = ($status === MODIFIED && $valueLine !== '') ? $lineAddSignName : $lineSignName;
 
-        $objectLine = getObjectLine($iter, $curArr, [$depth, $fixChildrenStatusUpdated, $keyNames]);
+        $objectLine = getObjectLine($iter, $curent, [$depth, $fixChildrenStatusUpdated, $keyNames]);
         $object = $objectLine !== '';
         [$lineStart, $lineEnd] = generateLineStartEnd($object, $depth, $lineSignNameUpdated, $startOffset);
         return $valueLine . $lineStart . $objectLine . $lineEnd . $valueAddLine;
@@ -68,10 +75,10 @@ function generateDiff(array $diffData, array $keyNames, int $startOffset = -2): 
     return $iter('', $diffData, $startOffset, false);
 }
 
-function getValueLine(array $curArr, string $lineSignName, int $depth, string $valueName): string
+function getValueLine(array $curent, string $lineSignName, int $depth, string $valueName): string
 {
-    if (array_key_exists($valueName, $curArr)) {
-        $stringifiedValue = stringifyItem($curArr[$valueName]);
+    if (array_key_exists($valueName, $curent)) {
+        $stringifiedValue = stringifyItem($curent[$valueName]);
         $lineVal = $stringifiedValue === '' ? '' : '' . $stringifiedValue;
         $valueLine = str_repeat(' ', $depth) . $lineSignName . ': ' . $lineVal . PHP_EOL;
     } else {

@@ -4,17 +4,23 @@ namespace Differ\Formatters\Json;
 
 use function Differ\Additional\getStatus;
 
+use const Differ\Differ\ADDED;
+use const Differ\Differ\DELETED;
+use const Differ\Differ\MODIFIED;
+use const Differ\Differ\NEWVALUENAME;
+use const Differ\Differ\UNCHANGED;
+use const Differ\Differ\VALUENAME;
+
 function generateDiff(mixed $diffData, array $keyNames): string
 {
-    $iter = function ($curArr, $parentStatus) use (&$iter, $keyNames) {
-        if (!is_array($curArr)) {
-            return $curArr;
+    $iter = function ($current, $parentStatus) use (&$iter, $keyNames) {
+        if (!is_array($current)) {
+            return $current;
         }
-        $status = getStatus($curArr);
-        $addStatus = !($parentStatus === null || ($status !== 'unchanged' && $parentStatus === $status));
-        $resArr = getValueArr($curArr, $status, $addStatus, $keyNames);
-        $resArrFin = ($status === 'unchanged') ? getObjectEl($iter, $curArr, [$status, $keyNames, $resArr]) : $resArr;
-        return $resArrFin;
+        $status = getStatus($current);
+        $addStatus = !($parentStatus === null || ($status !== UNCHANGED && $parentStatus === $status));
+        $preResult = getValue($current, $status, $addStatus, $keyNames);
+        return ($status === UNCHANGED) ? getObjectEl($iter, $current, [$status, $keyNames, $preResult]) : $preResult;
     };
 
     $jsonData = $iter($diffData, null);
@@ -26,56 +32,55 @@ function generateDiff(mixed $diffData, array $keyNames): string
     }
 }
 
-function getObjectEl(callable $iter, array $curArr, array $parameters): array
+function getObjectEl(callable $iter, array $current, array $parameters): array
 {
-    [$status, $keyNames, $resArr] = $parameters;
+    [$status, $keyNames, $preResult] = $parameters;
     return array_reduce(
-        array_keys($curArr),
-        function ($accArr, $itemName) use ($iter, $curArr, $status, $keyNames) {
+        array_keys($current),
+        function ($acc, $itemName) use ($iter, $current, $status, $keyNames) {
             if (in_array($itemName, $keyNames, true)) {
-                return $accArr;
+                return $acc;
             }
-            return array_merge([$itemName => $iter($curArr[$itemName], $status)], $accArr);
+            return array_merge($acc, [$itemName => $iter($current[$itemName], $status)]);
         },
-        $resArr
+        $preResult
     );
 }
 
-function getCopyArr(array $curArr, array $keyNames, string $valueName): array
+function getCopy(array $current, array $keyNames, string $valueName): array
 {
-    return array_reduce(array_keys($curArr), function ($accArr, $itemName) use (&$curArr, $keyNames, $valueName) {
+    return array_reduce(array_keys($current), function ($acc, $itemName) use (&$current, $keyNames, $valueName) {
         if (in_array($itemName, $keyNames, true)) {
-            return $accArr;
+            return $acc;
         }
-        if (array_key_exists($valueName, $curArr[$itemName])) {
-            $resArr = array_merge([$itemName => $curArr[$itemName][$valueName]], $accArr);
+        if (array_key_exists($valueName, $current[$itemName])) {
+            $preResult = array_merge($acc, [$itemName => $current[$itemName][$valueName]]);
         } else {
-            $resArr = array_merge([$itemName => getCopyArr($curArr[$itemName], $keyNames, $valueName)], $accArr);
+            $preResult = array_merge($acc, [$itemName => getCopy($current[$itemName], $keyNames, $valueName)]);
         }
-        return $resArr;
+        return $preResult;
     }, []);
 }
 
-function getValueArr(array $curArr, string $status, bool $addStatus, array $keyNames): array
+function getValue(array $current, string $status, bool $addStatus, array $keyNames): array
 {
-    $valueArr = $addStatus ? ['status' => $status] : [];
-    $valueStatuses = ['deleted', 'modified'];
-    $valueAddStatuses = ['added', 'modified'];
-    $resArr = fillValueFields($valueArr, $curArr, ['_value', 'value', $status, $valueStatuses, $keyNames]);
-    $resArrFin = fillValueFields($resArr, $curArr, ['_newValue', 'newValue', $status, $valueAddStatuses, $keyNames]);
-    return $resArrFin;
+    $valueDesc = $addStatus ? ['status' => $status] : [];
+    $valueStatuses = [DELETED, MODIFIED];
+    $valueAddStatuses = [ADDED, MODIFIED];
+    $preResult = fillValueFields($valueDesc, $current, [VALUENAME, 'value', $status, $valueStatuses, $keyNames]);
+    return fillValueFields($preResult, $current, [NEWVALUENAME, 'newValue', $status, $valueAddStatuses, $keyNames]);
 }
 
-function fillValueFields(array $valueArr, array $curArr, array $parameters): array
+function fillValueFields(array $valueDesc, array $current, array $parameters): array
 {
-    [$valueName, $valueNewName, $status, $checkStatusArr, $keyNames] = $parameters;
-    $valueExists = array_key_exists($valueName, $curArr);
+    [$valueName, $valueNewName, $status, $checkStatusDesc, $keyNames] = $parameters;
+    $valueExists = array_key_exists($valueName, $current);
     if ($valueExists) {
-        $resArr = array_merge([$valueNewName => $curArr[$valueName]], $valueArr);
-    } elseif (in_array($status, $checkStatusArr, true)) {
-        $resArr = array_merge([$valueNewName => getCopyArr($curArr, $keyNames, $valueName)], $valueArr);
+        $preResult = array_merge($valueDesc, [$valueNewName => $current[$valueName]]);
+    } elseif (in_array($status, $checkStatusDesc, true)) {
+        $preResult = array_merge($valueDesc, [$valueNewName => getCopy($current, $keyNames, $valueName)]);
     } else {
-        $resArr = $valueArr;
+        $preResult = $valueDesc;
     }
-    return $resArr;
+    return $preResult;
 }
