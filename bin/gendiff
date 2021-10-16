@@ -28,6 +28,6 @@ $response = Docopt::handle($doc, array('version' => 'gendiff 1.0'));
 $args = $response->args;
 $firstFile = $args["<firstFile>"] ?? null;
 $secondFile = $args["<secondFile>"] ?? null;
-$formatter = $args["----format"] ?? "stylish";
+$formatter = $args["--format"] ?? "stylish";
 
 echo genDiff($firstFile, $secondFile, $formatter);
