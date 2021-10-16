@@ -20,17 +20,17 @@ class DifferTest extends \PHPUnit\Framework\TestCase
         $fixturesDir = __DIR__ . '/fixtures/';
         $filePath1 = $fixturesDir . $file1;
         $filePath2 = $fixturesDir . $file2;
-        $actualAnswer = ($formatter === null) ? genDiff($filePath1, $filePath2) : genDiff($filePath1, $filePath2, $formatter); 
+        $actualAnswer = ($formatter === null) ? genDiff($filePath1, $filePath2) : genDiff($filePath1, $filePath2, $formatter);
         $this->assertEquals($expected, $actualAnswer);
     }
-    
+
     public function dataProvider()
     {
         $expectedAnswer1 = file_get_contents(__DIR__ . '/fixtures/expectedSimple.txt');
         $expectedAnswer2 = file_get_contents(__DIR__ . '/fixtures/expectedComplex.txt');
         $expectedAnswer3 = file_get_contents(__DIR__ . '/fixtures/expectedComplexPlain.txt');
         $expectedAnswer4 = json_encode(json_decode(file_get_contents(__DIR__ . '/fixtures/expectedComplexJson.txt')));
-        
+
         return [
             'simpleJsonDefault' => ['file1.json', 'file2.json', null, $expectedAnswer1],
             'complexJsonDefault' => ['complexFile1.json', 'complexFile2.json', null, $expectedAnswer2],
