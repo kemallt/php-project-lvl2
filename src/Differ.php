@@ -15,10 +15,10 @@ const NEWVALUENAME = 'newValue';
 
 function genDiff(string $pathToFile1, string $pathToFile2, string $formatter = "stylish"): string
 {
-    if ($pathToFile1 === null || $pathToFile1 === '') {
+    if ($pathToFile1 === '') {
         throw new \Exception('no first file name');
     }
-    if ($pathToFile2 === null || $pathToFile2 === '') {
+    if ($pathToFile2 === '') {
         throw new \Exception('no second file name');
     }
     $keyNames = [STATUSNAME, VALUENAME, NEWVALUENAME];
