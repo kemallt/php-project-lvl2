@@ -25,15 +25,15 @@ function generateDiff(array $diffData): string
         $status = $currentData[STATUSNAME];
         switch ($status) {
             case MODIFIED:
-                return $line = "Property '{$path}' was updated. From {$value} to {$valueAdd}" . PHP_EOL;
+                return "Property '{$path}' was updated. From {$value} to {$valueAdd}" . PHP_EOL;
             case DELETED:
-                return $line = "Property '{$path}' was removed" . PHP_EOL;
+                return "Property '{$path}' was removed" . PHP_EOL;
             case ADDED:
-                return $line = "Property '{$path}' was added with value: {$valueAdd}" . PHP_EOL;
+                return "Property '{$path}' was added with value: {$valueAdd}" . PHP_EOL;
             case NESTED:
-                return $line = getObjectLine($iter, $currentData, $path, '');
+                return getObjectLine($iter, $currentData, $path, '');
             case UNCHANGED:
-                return $line = '';
+                return '';
             default:
                 throw new \Exception('unknown status - ' . $status);
         }
