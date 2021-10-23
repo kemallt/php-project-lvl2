@@ -20,11 +20,8 @@ function generateDiff(
     array $diffData,
     int $depth = STARTOFFSET,
     string $lineName = '',
-    $fixChildrenStatus = false
+    bool $fixChildrenStatus = false
 ): string {
-    if (!is_array($diffData)) {
-        return $diffData . PHP_EOL;
-    }
     $status = $fixChildrenStatus ? UNCHANGED : $diffData[STATUSNAME];
     switch ($status) {
         case NESTED:

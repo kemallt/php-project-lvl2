@@ -3,7 +3,6 @@
 namespace Differ\Formatters\Plain;
 
 use function Differ\Additional\getKeyNames;
-use function Differ\Additional\getStatus;
 use function Differ\Additional\stringifyItem;
 
 use const Differ\Differ\ADDED;
