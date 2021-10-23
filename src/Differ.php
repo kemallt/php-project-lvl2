@@ -9,6 +9,7 @@ const ADDED = 'added';
 const MODIFIED = 'modified';
 const DELETED = 'deleted';
 const UNCHANGED = 'unchanged';
+const NESTED = 'nested';
 const STATUSNAME = 'status';
 const VALUENAME = 'value';
 const NEWVALUENAME = 'newValue';
@@ -16,10 +17,10 @@ const NEWVALUENAME = 'newValue';
 function genDiff(string $pathToFile1, string $pathToFile2, string $formatter = "stylish"): string
 {
     if ($pathToFile1 === '') {
-        throw new \Exception('no first file name');
+        throw new \Exception('no first file path');
     }
     if ($pathToFile2 === '') {
-        throw new \Exception('no second file name');
+        throw new \Exception('no second file path');
     }
     $keyNames = [STATUSNAME, VALUENAME, NEWVALUENAME];
     $data1 = getDataFromFile($pathToFile1);
