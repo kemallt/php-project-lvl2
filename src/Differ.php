@@ -22,18 +22,19 @@ function genDiff(string $pathToFile1, string $pathToFile2, string $formatter = "
     if ($pathToFile2 === '') {
         throw new \Exception('no second file path');
     }
-    $keyNames = [STATUSNAME, VALUENAME, NEWVALUENAME];
     $data1 = getDataFromFile($pathToFile1);
     $data2 = getDataFromFile($pathToFile2);
 
     $sortedDiffData = createDiffObjects($data1, $data2);
-    return getFormattedDiff($sortedDiffData, $keyNames, $formatter);
+    return getFormattedDiff($sortedDiffData, $formatter);
 }
 
 function createDiffObjects(object $data1, object $data2): array
 {
-    $convertedData = convertItem($data1, [STATUSNAME => UNCHANGED], DELETED);
-    return convertItem($data2, $convertedData, ADDED);
+    $convertedData = convertItem($data1, [STATUSNAME => NESTED], DELETED);
+    $convertedData1 = convertItem($data2, $convertedData, ADDED);
+//    echo json_encode($convertedData1);
+    return $convertedData1;
 }
 
 function convertItem(object $item, array $itemData, string $status): mixed
@@ -66,7 +67,7 @@ function getNextItem(string $itemName, mixed $itemValue, array $current, string 
         $itemIsObject = is_object($itemValue);
         $valueExists = array_key_exists(VALUENAME, $currentNextItem);
         if ($itemIsObject) {
-            $newStatus = $valueExists ? MODIFIED : UNCHANGED;
+            $newStatus = $valueExists ? MODIFIED : NESTED;
             $nextItem = array_merge($currentNextItem, [STATUSNAME => $newStatus]);
         } else {
             $nextItem = $currentNextItem;

@@ -32,9 +32,10 @@ class DifferTest extends \PHPUnit\Framework\TestCase
         $expectedAnswer4 = json_encode(json_decode(file_get_contents(__DIR__ . '/fixtures/expectedComplexJson.txt')));
 
         return [
-            'simpleJsonDefault' => ['file1.json', 'file2.json', null, $expectedAnswer1],
+//            'simpleJsonDefault' => ['file1.json', 'file2.json', null, $expectedAnswer1],
             'complexJsonDefault' => ['complexFile1.json', 'complexFile2.json', null, $expectedAnswer2],
             'complexJsonPlain' => ['complexFile1.json', 'complexFile2.json', 'plain', $expectedAnswer3],
+            'complexJsonJson' => ['complexFile1.json', 'complexFile2.json', 'json', $expectedAnswer4],
             'complexJsonJson' => ['complexFile1.json', 'complexFile2.json', 'json', $expectedAnswer4],
             'simpleYamlStylish' => ['file1.yml', 'file2.yml', 'stylish', $expectedAnswer1],
             'complexYamlStylish' => ['complexFile1.yml', 'complexFile2.yaml', 'stylish', $expectedAnswer2]

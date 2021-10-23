@@ -2,8 +2,11 @@
 
 namespace Differ\Additional;
 
+use const Differ\Differ\NESTED;
+use const Differ\Differ\NEWVALUENAME;
 use const Differ\Differ\STATUSNAME;
 use const Differ\Differ\UNCHANGED;
+use const Differ\Differ\VALUENAME;
 
 function stringifyItem(mixed $item): mixed
 {
@@ -19,7 +22,7 @@ function stringifyItem(mixed $item): mixed
     return $res;
 }
 
-function getStatus(array $data, bool $fixChildrenStatus = false): string
+function getKeyNames(): array
 {
-    return $fixChildrenStatus ? UNCHANGED : $data[STATUSNAME];
+    return [STATUSNAME, VALUENAME, NEWVALUENAME];
 }
