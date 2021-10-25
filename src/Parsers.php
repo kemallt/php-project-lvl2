@@ -7,12 +7,11 @@ use Symfony\Component\Yaml\Yaml;
 function getDataFromFile(string $pathToFile): object
 {
     $pathParts = pathinfo($pathToFile);
-    if (array_key_exists('extension', $pathParts)) {
-        $extension = $pathParts['extension'];
-    } else {
+    if (!array_key_exists('extension', $pathParts)) {
         throw new \Exception("could not get file extension from {$pathToFile}");
     }
 
+    $extension = $pathParts['extension'];
     $fileContent = file_get_contents($pathToFile);
     if ($fileContent === false) {
         throw new \Exception("could not get file content from {$pathToFile}");
@@ -24,14 +23,11 @@ function parseData(string $extension, mixed $data): mixed
 {
     switch ($extension) {
         case 'json':
-            $result = json_decode($data);
-            break;
+            return json_decode($data);
         case 'yml':
         case 'yaml':
-            $result = Yaml::parse($data, Yaml::PARSE_OBJECT_FOR_MAP);
-            break;
+            return Yaml::parse($data, Yaml::PARSE_OBJECT_FOR_MAP);
         default:
             throw new \Exception('unknown extension');
     }
-    return $result;
 }

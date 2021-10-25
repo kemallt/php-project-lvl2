@@ -32,9 +32,7 @@ function genDiff(string $pathToFile1, string $pathToFile2, string $formatter = "
 function createDiffObjects(object $data1, object $data2): array
 {
     $convertedData = convertItem($data1, [STATUSNAME => NESTED], DELETED);
-    $convertedData1 = convertItem($data2, $convertedData, ADDED);
-//    echo json_encode($convertedData1);
-    return $convertedData1;
+    return convertItem($data2, $convertedData, ADDED);
 }
 
 function convertItem(object $item, array $itemData, string $status): mixed
