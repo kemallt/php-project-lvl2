@@ -43,8 +43,7 @@ function processData(object $data1, object $data2): array
     return array_reduce(
         array_keys($data1Vals),
         function ($acc, $itemName) use ($data1, $data2, $data2Vals) {
-            $acc['status'] = NESTED;
-            if (!in_array($itemName, array_keys($data2Vals))) {
+            if (!in_array($itemName, array_keys($data2Vals), true)) {
                 return array_merge(
                     $acc,
                     [$itemName => createNode($itemName, VALUENAME, DELETED, $data1)]
@@ -83,11 +82,9 @@ function processData(object $data1, object $data2): array
                 );
             }
             $acc[$itemName] = convertObject($data1->$itemName, $data2->$itemName);
-            unset($data1->$itemName);
-            unset($data2->$itemName);
             return $acc;
         },
-        []
+        ['status' => NESTED]
     );
 }
 
@@ -96,14 +93,16 @@ function processData2(object $data2, array $diffData): array
     $data2Vals = (array)$data2;
     return array_reduce(
         array_keys($data2Vals),
-        function ($acc, $itemName) use ($data2) {
+        function ($acc, $itemName) use ($data2, $diffData) {
+            if (array_key_exists($itemName, $diffData)) {
+                return $acc;
+            }
             if (is_object($data2->$itemName)) {
                 $acc[$itemName] = convertObject(new \StdClass(), $data2->$itemName);
             } else {
                 $acc[$itemName][NEWVALUENAME] = $data2->$itemName;
             }
             $acc[$itemName]['status'] = ADDED;
-            unset($data2->$itemName);
             return $acc;
         },
         $diffData
@@ -118,7 +117,6 @@ function createNode(string $itemName, string $valueName, string $status, object 
         $itemValue = [$valueName => $data1->$itemName];
     }
     $res = array_merge($itemValue, ['status' => $status]);
-    unset($data1->$itemName);
     return $res;
 }
 
@@ -129,13 +127,12 @@ function updateNode(array $node, string $itemName, object $data, string $valueNa
     } else {
         $itemValue = [$valueName => $data->$itemName];
     }
-    unset($data->$itemName);
-    return ($valueName === null) ? $node : array_merge($itemValue, $node);
+    return array_merge($itemValue, $node);
 }
 
 function sortDiffArr($diffArr)
 {
-    $iter = function ($curArr) use (&$iter) {
+    $iter = function ($curArr) {
         if (!is_array($curArr)) {
             return $curArr;
         }
