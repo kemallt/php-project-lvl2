@@ -114,7 +114,7 @@ function updateNode(array $node, string $itemName, object $data, string $valueNa
     return array_merge($itemValue, $node);
 }
 
-function sortDiffArr($diffArr)
+function sortDiffArr(mixed $diffArr): mixed
 {
     $iter = function ($curArr) {
         if (!is_array($curArr)) {
@@ -123,8 +123,7 @@ function sortDiffArr($diffArr)
         foreach ($curArr as $itemName => $itemValue) {
             $curArr[$itemName] = sortDiffArr($itemValue);
         }
-        ksort($curArr);
-        return $curArr;
+        return collect($curArr)->sortKeys()->all();
     };
     return $iter($diffArr);
 }
