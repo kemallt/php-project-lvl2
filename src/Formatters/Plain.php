@@ -16,42 +16,44 @@ use const Differ\Differ\VALUENAME;
 
 function generateDiff(array $diffData): string
 {
-    $iter = function ($currentData, $path) use (&$iter) {
-        if (!is_array($currentData)) {
-            return $currentData;
-        }
-        $value = getValue(VALUENAME, $currentData);
-        $valueAdd = getValue(NEWVALUENAME, $currentData);
-        $status = $currentData[STATUSNAME];
-        switch ($status) {
-            case MODIFIED:
-                return "Property '{$path}' was updated. From {$value} to {$valueAdd}" . PHP_EOL;
-            case DELETED:
-                return "Property '{$path}' was removed" . PHP_EOL;
-            case ADDED:
-                return "Property '{$path}' was added with value: {$valueAdd}" . PHP_EOL;
-            case NESTED:
-                return getObjectLine($iter, $currentData, $path, '');
-            case UNCHANGED:
-                return '';
-            default:
-                throw new \Exception('unknown status - ' . $status);
-        }
-    };
-    return rtrim($iter($diffData, ''));
+    return rtrim(generateNodeDiff($diffData, ''));
 }
 
-function getObjectLine(callable $iter, array $currentData, string $path, string $line): string
+function generateNodeDiff(array $currentData, string $path): string
+{
+    if (!is_array($currentData)) {
+        return $currentData;
+    }
+    $value = getValue(VALUENAME, $currentData);
+    $valueAdd = getValue(NEWVALUENAME, $currentData);
+    $status = $currentData[STATUSNAME];
+    switch ($status) {
+        case MODIFIED:
+            return "Property '{$path}' was updated. From {$value} to {$valueAdd}" . PHP_EOL;
+        case DELETED:
+            return "Property '{$path}' was removed" . PHP_EOL;
+        case ADDED:
+            return "Property '{$path}' was added with value: {$valueAdd}" . PHP_EOL;
+        case NESTED:
+            return getObjectLine($currentData, $path, '');
+        case UNCHANGED:
+            return '';
+        default:
+            throw new \Exception('unknown status - ' . $status);
+    }
+}
+
+function getObjectLine(array $currentData, string $path, string $line): string
 {
     return array_reduce(
         array_keys($currentData),
-        function ($accLine, $itemName) use ($iter, $currentData, $path) {
+        function ($accLine, $itemName) use ($currentData, $path) {
             $keyNames = getKeyNames();
             if (in_array($itemName, $keyNames, true)) {
                 return $accLine;
             }
             $newPath = $path === '' ? $itemName : "{$path}.{$itemName}";
-            return $accLine . $iter($currentData[$itemName], $newPath);
+            return $accLine . generateNodeDiff($currentData[$itemName], $newPath);
         },
         $line
     );
