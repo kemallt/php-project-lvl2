@@ -36,7 +36,62 @@ function convertObject(object $data1, object $data2): array
     return processData2($data2, $diffData);
 }
 
-function processData2($data2, $diffData)
+function processData(object $data1, object $data2): array
+{
+    $data1Vals = (array)$data1;
+    $data2Vals = (array)$data2 ?? [];
+    return array_reduce(
+        array_keys($data1Vals),
+        function ($acc, $itemName) use ($data1, $data2, $data2Vals) {
+            $acc['status'] = NESTED;
+            if (!in_array($itemName, array_keys($data2Vals))) {
+                return array_merge(
+                    $acc,
+                    [$itemName => createNode($itemName, VALUENAME, DELETED, $data1)]
+                );
+            }
+            if ($data1->$itemName === $data2->$itemName) {
+                $node = createNode($itemName, VALUENAME, UNCHANGED, $data1);
+                unset($data2->$itemName);
+                return array_merge(
+                    $acc,
+                    [$itemName => $node]
+                );
+            }
+            if (!is_object($data1->$itemName) && !is_object($data2->$itemName)) {
+                $node = createNode($itemName, VALUENAME, MODIFIED, $data1);
+                $updatedNode = updateNode($node, $itemName, $data2, NEWVALUENAME);
+                return array_merge(
+                    $acc,
+                    [$itemName => $updatedNode]
+                );
+            }
+            if (!is_object($data1->$itemName)) {
+                $node = createNode($itemName, VALUENAME, MODIFIED, $data1);
+                $updatedNode = updateNode($node, $itemName, $data2, NEWVALUENAME);
+                return array_merge(
+                    $acc,
+                    [$itemName => $updatedNode]
+                );
+            }
+            if (!is_object($data2->$itemName)) {
+                $node = createNode($itemName, VALUENAME, MODIFIED, $data1);
+                $updatedNode = updateNode($node, $itemName, $data2, NEWVALUENAME);
+                return array_merge(
+                    $acc,
+                    [$itemName => $updatedNode]
+                );
+            }
+            $acc[$itemName] = convertObject($data1->$itemName, $data2->$itemName);
+            unset($data1->$itemName);
+            unset($data2->$itemName);
+            return $acc;
+        },
+        []
+    );
+}
+
+function processData2(object $data2, array $diffData): array
 {
     $data2Vals = (array)$data2;
     return array_reduce(
@@ -55,54 +110,7 @@ function processData2($data2, $diffData)
     );
 }
 
-function processData($data1, $data2)
-{
-    $data1Vals = (array)$data1;
-    $data2Vals = (array)$data2 ?? [];
-    return array_reduce(
-        array_keys($data1Vals),
-        function ($acc, $itemName) use ($data1, $data2, $data2Vals) {
-            $acc['status'] = NESTED;
-            if (!in_array($itemName, array_keys($data2Vals))) {
-                return array_merge(
-                    $acc,
-                    [$itemName => createNode($itemName, VALUENAME, DELETED, $data1)]
-                );
-            }
-            if ($data1->$itemName === $data2->$itemName) {
-                return array_merge(
-                    $acc,
-                    [$itemName => createNode($itemName, VALUENAME, UNCHANGED, $data1, $data2)]
-                );
-            }
-            if (!is_object($data1->$itemName) && !is_object($data2->$itemName)) {
-                return array_merge(
-                    $acc,
-                    [$itemName => createNode($itemName, VALUENAME, MODIFIED, $data1, $data2, NEWVALUENAME)]
-                );
-            }
-            if (!is_object($data1->$itemName)) {
-                return array_merge(
-                    $acc,
-                    [$itemName => createNode($itemName, VALUENAME, MODIFIED, $data1, $data2, NEWVALUENAME)]
-                );
-            }
-            if (!is_object($data2->$itemName)) {
-                return array_merge(
-                    $acc,
-                    [$itemName => createNode($itemName, VALUENAME, MODIFIED, $data1, $data2, NEWVALUENAME)]
-                );
-            }
-            $acc[$itemName] = convertObject($data1->$itemName, $data2->$itemName);
-            unset($data1->$itemName);
-            unset($data2->$itemName);
-            return $acc;
-        },
-        []
-    );
-}
-
-function createNode($itemName, $valueName, $status, $data1, $data2 = null, $secValueName = null)
+function createNode(string $itemName, string $valueName, string $status, object $data1): array
 {
     if (is_object($data1->$itemName)) {
         $itemValue = convertObject($data1->$itemName, new \StdClass());
@@ -110,20 +118,20 @@ function createNode($itemName, $valueName, $status, $data1, $data2 = null, $secV
         $itemValue = [$valueName => $data1->$itemName];
     }
     $res = array_merge($itemValue, ['status' => $status]);
-    if ($data2) {
-        if (is_object($data2->$itemName)) {
-            $item2Value = convertObject(new \StdClass(), $data2->$itemName);
-        } else {
-            $item2Value = [$secValueName => $data2->$itemName];
-        }
-        $finRes = ($secValueName === null) ? $res : array_merge($item2Value, $res);
-        unset($data2->$itemName);
-        return $finRes;
-    }
     unset($data1->$itemName);
     return $res;
 }
 
+function updateNode(array $node, string $itemName, object $data, string $valueName): array
+{
+    if (is_object($data->$itemName)) {
+        $itemValue = convertObject(new \StdClass(), $data->$itemName);
+    } else {
+        $itemValue = [$valueName => $data->$itemName];
+    }
+    unset($data->$itemName);
+    return ($valueName === null) ? $node : array_merge($itemValue, $node);
+}
 
 function sortDiffArr($diffArr)
 {
