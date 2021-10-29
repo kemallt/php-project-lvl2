@@ -43,46 +43,7 @@ function processData(object $data1, object $data2): array
     return array_reduce(
         array_keys($data1Vals),
         function ($acc, $itemName) use ($data1, $data2, $data2Vals) {
-            if (!in_array($itemName, array_keys($data2Vals), true)) {
-                return array_merge(
-                    $acc,
-                    [$itemName => createNode($itemName, VALUENAME, DELETED, $data1)]
-                );
-            }
-            if ($data1->$itemName === $data2->$itemName) {
-                $node = createNode($itemName, VALUENAME, UNCHANGED, $data1);
-                unset($data2->$itemName);
-                return array_merge(
-                    $acc,
-                    [$itemName => $node]
-                );
-            }
-            if (!is_object($data1->$itemName) && !is_object($data2->$itemName)) {
-                $node = createNode($itemName, VALUENAME, MODIFIED, $data1);
-                $updatedNode = updateNode($node, $itemName, $data2, NEWVALUENAME);
-                return array_merge(
-                    $acc,
-                    [$itemName => $updatedNode]
-                );
-            }
-            if (!is_object($data1->$itemName)) {
-                $node = createNode($itemName, VALUENAME, MODIFIED, $data1);
-                $updatedNode = updateNode($node, $itemName, $data2, NEWVALUENAME);
-                return array_merge(
-                    $acc,
-                    [$itemName => $updatedNode]
-                );
-            }
-            if (!is_object($data2->$itemName)) {
-                $node = createNode($itemName, VALUENAME, MODIFIED, $data1);
-                $updatedNode = updateNode($node, $itemName, $data2, NEWVALUENAME);
-                return array_merge(
-                    $acc,
-                    [$itemName => $updatedNode]
-                );
-            }
-            $acc[$itemName] = convertObject($data1->$itemName, $data2->$itemName);
-            return $acc;
+            return array_merge($acc, processItem($itemName, $data1, $data2, $data2Vals));
         },
         ['status' => NESTED]
     );
@@ -107,6 +68,29 @@ function processData2(object $data2, array $diffData): array
         },
         $diffData
     );
+}
+
+function processItem(string $itemName, object $data1, object $data2, array $data2Vals): array
+{
+    if (!in_array($itemName, array_keys($data2Vals), true)) {
+        return [$itemName => createNode($itemName, VALUENAME, DELETED, $data1)];
+    }
+    if ($data1->$itemName === $data2->$itemName) {
+        return [$itemName => createNode($itemName, VALUENAME, UNCHANGED, $data1)];
+    }
+    if (!is_object($data1->$itemName) && !is_object($data2->$itemName)) {
+        $node = createNode($itemName, VALUENAME, MODIFIED, $data1);
+        return [$itemName => updateNode($node, $itemName, $data2, NEWVALUENAME)];
+    }
+    if (!is_object($data1->$itemName)) {
+        $node = createNode($itemName, VALUENAME, MODIFIED, $data1);
+        return [$itemName => updateNode($node, $itemName, $data2, NEWVALUENAME)];
+    }
+    if (!is_object($data2->$itemName)) {
+        $node = createNode($itemName, VALUENAME, MODIFIED, $data1);
+        return [$itemName => updateNode($node, $itemName, $data2, NEWVALUENAME)];
+    }
+    return [$itemName => convertObject($data1->$itemName, $data2->$itemName)];
 }
 
 function createNode(string $itemName, string $valueName, string $status, object $data1): array
