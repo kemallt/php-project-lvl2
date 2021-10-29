@@ -73,15 +73,7 @@ function processItem(string $itemName, object $data1, object $data2): array
     if ($data1->$itemName === $data2->$itemName) {
         return createNode($itemName, VALUENAME, UNCHANGED, $data1);
     }
-    if (!is_object($data1->$itemName) && !is_object($data2->$itemName)) {
-        $node = createNode($itemName, VALUENAME, MODIFIED, $data1);
-        return addData2ToNode($node, $itemName, $data2, NEWVALUENAME);
-    }
-    if (!is_object($data1->$itemName)) {
-        $node = createNode($itemName, VALUENAME, MODIFIED, $data1);
-        return addData2ToNode($node, $itemName, $data2, NEWVALUENAME);
-    }
-    if (!is_object($data2->$itemName)) {
+    if (!is_object($data1->$itemName) || !is_object($data2->$itemName)) {
         $node = createNode($itemName, VALUENAME, MODIFIED, $data1);
         return addData2ToNode($node, $itemName, $data2, NEWVALUENAME);
     }
