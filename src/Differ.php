@@ -120,10 +120,14 @@ function sortDiffArr(mixed $diffArr): mixed
         if (!is_array($curArr)) {
             return $curArr;
         }
-        foreach ($curArr as $itemName => $itemValue) {
-            $curArr[$itemName] = sortDiffArr($itemValue);
-        }
-        return collect($curArr)->sortKeys()->all();
+        $sortedCurArr = array_reduce(
+            array_keys($curArr),
+            function ($acc, $itemName) use ($curArr) {
+                return array_merge($acc, [$itemName => sortDiffArr($curArr[$itemName])]);
+            },
+            []
+        );
+        return collect($sortedCurArr)->sortKeys()->all();
     };
     return $iter($diffArr);
 }
