@@ -104,10 +104,18 @@ function processData($data1, $data2)
 
 function createNode($itemName, $valueName, $status, $data1, $data2 = null, $secValueName = null)
 {
-    $itemValue = (is_object($data1->$itemName)) ? convertObject($data1->$itemName, new \StdClass()) : [$valueName => $data1->$itemName];
+    if (is_object($data1->$itemName)) {
+        $itemValue = convertObject($data1->$itemName, new \StdClass());
+    } else {
+        $itemValue = [$valueName => $data1->$itemName];
+    }
     $res = array_merge($itemValue, ['status' => $status]);
     if ($data2) {
-        $item2Value = (is_object($data2->$itemName)) ? convertObject(new \StdClass(), $data2->$itemName) : [$secValueName => $data2->$itemName];
+        if (is_object($data2->$itemName)) {
+            $item2Value = convertObject(new \StdClass(), $data2->$itemName);
+        } else {
+            $item2Value = [$secValueName => $data2->$itemName];
+        }
         $finRes = ($secValueName === null) ? $res : array_merge($item2Value, $res);
         unset($data2->$itemName);
         return $finRes;
@@ -115,6 +123,7 @@ function createNode($itemName, $valueName, $status, $data1, $data2 = null, $secV
     unset($data1->$itemName);
     return $res;
 }
+
 
 function sortDiffArr($diffArr)
 {
@@ -130,4 +139,3 @@ function sortDiffArr($diffArr)
     };
     return $iter($diffArr);
 }
-
