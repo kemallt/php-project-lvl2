@@ -21,9 +21,6 @@ function generateDiff(array $diffData): string
 
 function generateNodeDiff(array $currentData, string $path): string
 {
-    if (!is_array($currentData)) {
-        return $currentData;
-    }
     $value = getValue(VALUENAME, $currentData);
     $valueAdd = getValue(NEWVALUENAME, $currentData);
     $status = $currentData[STATUSNAME];
