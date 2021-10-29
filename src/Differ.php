@@ -33,6 +33,11 @@ function genDiff(string $pathToFile1, string $pathToFile2, string $formatter = "
 function convertObject(object $data1, object $data2): array
 {
     $diffData = processData($data1, $data2);
+    return processData2($data2, $diffData);
+}
+
+function processData2($data2, $diffData)
+{
     $data2Vals = (array)$data2;
     return array_reduce(
         array_keys($data2Vals),
@@ -79,7 +84,7 @@ function processData($data1, $data2)
             if (!is_object($data1->$itemName)) {
                 return array_merge(
                     $acc,
-                    [$itemName => createNode($itemName, NEWVALUENAME, MODIFIED, $data1, $data2, VALUENAME)]
+                    [$itemName => createNode($itemName, VALUENAME, MODIFIED, $data1, $data2, NEWVALUENAME)]
                 );
             }
             if (!is_object($data2->$itemName)) {
@@ -99,18 +104,16 @@ function processData($data1, $data2)
 
 function createNode($itemName, $valueName, $status, $data1, $data2 = null, $secValueName = null)
 {
-    $res = array_merge(convertItemValue($data1->$itemName, $valueName), ['status' => $status]);
-    $finRes = ($secValueName === null) ? $res : array_merge(convertItemValue($data2->$itemName, $secValueName), $res);
-    unset($data1->$itemName);
+    $itemValue = (is_object($data1->$itemName)) ? convertObject($data1->$itemName, new \StdClass()) : [$valueName => $data1->$itemName];
+    $res = array_merge($itemValue, ['status' => $status]);
     if ($data2) {
+        $item2Value = (is_object($data2->$itemName)) ? convertObject(new \StdClass(), $data2->$itemName) : [$secValueName => $data2->$itemName];
+        $finRes = ($secValueName === null) ? $res : array_merge($item2Value, $res);
         unset($data2->$itemName);
+        return $finRes;
     }
-    return $finRes;
-}
-
-function convertItemValue($itemValue, $valueName)
-{
-    return (is_object($itemValue)) ? convertObject($itemValue, new \StdClass()) : [$valueName => $itemValue];
+    unset($data1->$itemName);
+    return $res;
 }
 
 function sortDiffArr($diffArr)
@@ -127,3 +130,4 @@ function sortDiffArr($diffArr)
     };
     return $iter($diffArr);
 }
+
