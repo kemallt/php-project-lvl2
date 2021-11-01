@@ -5,14 +5,14 @@ namespace Differ\Formatters\Plain;
 use function Differ\Additional\getKeyNames;
 use function Differ\Additional\stringifyItem;
 
-use const Differ\Differ\ADDED;
-use const Differ\Differ\DELETED;
-use const Differ\Differ\MODIFIED;
-use const Differ\Differ\NESTED;
-use const Differ\Differ\NEWVALUENAME;
-use const Differ\Differ\STATUSNAME;
-use const Differ\Differ\UNCHANGED;
-use const Differ\Differ\VALUENAME;
+use const Differ\TreeBuilder\ADDED;
+use const Differ\TreeBuilder\DELETED;
+use const Differ\TreeBuilder\MODIFIED;
+use const Differ\TreeBuilder\NESTED;
+use const Differ\TreeBuilder\NEWVALUENAME;
+use const Differ\TreeBuilder\STATUSNAME;
+use const Differ\TreeBuilder\UNCHANGED;
+use const Differ\TreeBuilder\VALUENAME;
 
 function generateDiff(array $diffData): string
 {
@@ -32,7 +32,7 @@ function generateNodeDiff(array $currentData, string $path): string
         case ADDED:
             return "Property '{$path}' was added with value: {$valueAdd}" . PHP_EOL;
         case NESTED:
-            return getObjectLine($currentData, $path, '');
+            return generateDiffForObject($currentData, $path, '');
         case UNCHANGED:
             return '';
         default:
@@ -40,7 +40,7 @@ function generateNodeDiff(array $currentData, string $path): string
     }
 }
 
-function getObjectLine(array $currentData, string $path, string $line): string
+function generateDiffForObject(array $currentData, string $path, string $line): string
 {
     return array_reduce(
         array_keys($currentData),

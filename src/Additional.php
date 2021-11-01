@@ -2,11 +2,11 @@
 
 namespace Differ\Additional;
 
-use const Differ\Differ\NESTED;
-use const Differ\Differ\NEWVALUENAME;
-use const Differ\Differ\STATUSNAME;
-use const Differ\Differ\UNCHANGED;
-use const Differ\Differ\VALUENAME;
+use const Differ\TreeBuilder\NESTED;
+use const Differ\TreeBuilder\NEWVALUENAME;
+use const Differ\TreeBuilder\STATUSNAME;
+use const Differ\TreeBuilder\UNCHANGED;
+use const Differ\TreeBuilder\VALUENAME;
 
 function stringifyItem(mixed $item): mixed
 {

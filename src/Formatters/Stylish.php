@@ -5,14 +5,14 @@ namespace Differ\Formatters\Stylish;
 use function Differ\Additional\getKeyNames;
 use function Differ\Additional\stringifyItem;
 
-use const Differ\Differ\ADDED;
-use const Differ\Differ\DELETED;
-use const Differ\Differ\MODIFIED;
-use const Differ\Differ\NESTED;
-use const Differ\Differ\NEWVALUENAME;
-use const Differ\Differ\STATUSNAME;
-use const Differ\Differ\UNCHANGED;
-use const Differ\Differ\VALUENAME;
+use const Differ\TreeBuilder\ADDED;
+use const Differ\TreeBuilder\DELETED;
+use const Differ\TreeBuilder\MODIFIED;
+use const Differ\TreeBuilder\NESTED;
+use const Differ\TreeBuilder\NEWVALUENAME;
+use const Differ\TreeBuilder\STATUSNAME;
+use const Differ\TreeBuilder\UNCHANGED;
+use const Differ\TreeBuilder\VALUENAME;
 
 const STARTOFFSET = -2;
 
@@ -55,7 +55,7 @@ function generateDiffString(
     $valueLineNew = getValueLine($current, $lineStartNew, $depth, NEWVALUENAME);
     $objectLine = getObjectLine($current, $depth, $fixChildrenStatus);
     $object = $objectLine !== '';
-    [$lineStart, $lineEnd] = generateLineStartEnd($object, $depth, $lineStartObject);
+    [$lineStart, $lineEnd] = getBeginingEndingOfLine($object, $depth, $lineStartObject);
     return $valueLineOld . $lineStart . $objectLine . $lineEnd . $valueLineNew;
 }
 
@@ -87,7 +87,7 @@ function getObjectLine(array $curent, int $depth, bool $fixChildrenStatus): stri
     );
 }
 
-function generateLineStartEnd(bool $object, int $depth, string $lineStartObject): array
+function getBeginingEndingOfLine(bool $object, int $depth, string $lineStartObject): array
 {
     if ($object && $depth > STARTOFFSET) {
         $lineStart = str_repeat(' ', $depth) . $lineStartObject . ': {' . PHP_EOL;

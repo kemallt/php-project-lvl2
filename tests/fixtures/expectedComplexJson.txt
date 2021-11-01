@@ -1,9 +1,8 @@
 {
 	"common": {
-		"status": "unchanged",
 		"follow": {
-			"status": "added",
-			"newValue": false
+			"newValue": false,
+			"status": "added"
 		},
 		"setting1": {
 			"status": "unchanged",
@@ -14,28 +13,28 @@
 			"value": 200
 		},
 		"setting3": {
+			"newValue": null,
 			"status": "modified",
-			"value": true,
-			"newValue": null
+			"value": true
 		},
 		"setting4": {
-			"status": "added",
-			"newValue": "blah blah"
+			"newValue": "blah blah",
+			"status": "added"
 		},
 		"setting5": {
-			"status": "added",
-			"newValue": {
-				"key5": "value5"
-			}
+			"key5": {
+				"newValue": "value5",
+				"status": "added"
+			},
+			"status": "added"
 		},
 		"setting6": {
-			"status": "unchanged",
 			"doge": {
-				"status": "unchanged",
+				"status": "nested",
 				"wow": {
+					"newValue": "so much",
 					"status": "modified",
-					"value": "",
-					"newValue": "so much"
+					"value": ""
 				}
 			},
 			"key": {
@@ -43,48 +42,63 @@
 				"value": "value"
 			},
 			"ops": {
-				"status": "added",
-				"newValue": "vops"
-			}
-		}
+				"newValue": "vops",
+				"status": "added"
+			},
+			"status": "nested"
+		},
+		"status": "nested"
 	},
 	"group1": {
-		"status": "unchanged",
 		"baz": {
+			"newValue": "bars",
 			"status": "modified",
-			"value": "bas",
-			"newValue": "bars"
+			"value": "bas"
 		},
 		"foo": {
 			"status": "unchanged",
 			"value": "bar"
 		},
 		"nest": {
-			"status": "modified",
-			"value": {
-				"key": "value"
-			},
-			"newValue": "str"
-		}
+		    "key": {
+		        "status": "deleted",
+		        "value": "value"
+		    },
+			"newValue": "str",
+			"status": "modified"
+		},
+		"status": "nested"
 	},
 	"group2": {
-		"status": "deleted",
-		"value": {
-			"abc": 12345,
-			"deep": {
-				"id": 45
-			}
-		}
+	    "abc": {
+	        "status": "deleted",
+	        "value": 12345
+	    },
+	    "deep": {
+	        "id": {
+	            "status": "deleted",
+	            "value": 45
+	        },
+	        "status": "deleted"
+	    },
+		"status": "deleted"
 	},
 	"group3": {
-		"status": "added",
-		"newValue": {
-			"deep": {
-				"id": {
-					"number": 45
-				}
+		"deep": {
+			"id": {
+				"number": {
+				    "newValue": 45,
+				    "status": "added"
+				},
+				"status": "added"
 			},
-			"fee": 100500
-		}
-	}
+			"status": "added"
+		},
+		"fee": {
+		    "newValue": 100500,
+		    "status": "added"
+		},
+	    "status": "added"
+	},
+	"status": "nested"
 }
